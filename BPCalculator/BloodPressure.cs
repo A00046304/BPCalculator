@@ -1,17 +1,15 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 
 namespace BPCalculator
 {
-    // BP categories
     public enum BPCategory
     {
         [Display(Name = "Low Blood Pressure")] Low,
         [Display(Name = "Ideal Blood Pressure")] Ideal,
         [Display(Name = "Pre-High Blood Pressure")] PreHigh,
         [Display(Name = "High Blood Pressure")] High
-    };
+    }
 
     public class BloodPressure
     {
@@ -20,41 +18,46 @@ namespace BPCalculator
         public const int DiastolicMin = 40;
         public const int DiastolicMax = 100;
 
-        [Range(SystolicMin, SystolicMax, ErrorMessage = "Invalid Systolic Value")]
-        public int Systolic { get; set; }                       // mmHG
+        [Range(SystolicMin, SystolicMax)]
+        public int Systolic { get; set; }
 
-        [Range(DiastolicMin, DiastolicMax, ErrorMessage = "Invalid Diastolic Value")]
-        public int Diastolic { get; set; }                      // mmHG
+        [Range(DiastolicMin, DiastolicMax)]
+        public int Diastolic { get; set; }
 
-        public bool IsValidReading => Systolic > Diastolic;
+        public BloodPressure() { }
 
-        // Calculate BP category
+        public BloodPressure(int systolic, int diastolic)
+        {
+            Systolic = systolic;
+            Diastolic = diastolic;
+        }
+
+        public void Validate()
+        {
+            if (Systolic < SystolicMin || Systolic > SystolicMax)
+                throw new ArgumentOutOfRangeException(nameof(Systolic));
+
+            if (Diastolic < DiastolicMin || Diastolic > DiastolicMax)
+                throw new ArgumentOutOfRangeException(nameof(Diastolic));
+
+            if (Systolic <= Diastolic)
+                throw new InvalidOperationException("Systolic must be greater than diastolic.");
+        }
+
         public BPCategory Category
         {
             get
             {
-                if (!IsValidReading)
-                {
-                    throw new InvalidOperationException("Systolic pressure must be higher than diastolic pressure.");
-                }
-
                 if (Systolic >= 140 || Diastolic >= 90)
-                {
                     return BPCategory.High;
-                }
-                else if (Systolic >= 120 || Diastolic >= 80)
-                {
-                    return BPCategory.PreHigh;
-                }
-                else if (Systolic >= 90 || Diastolic >= 60)
-                {
-                    return BPCategory.Ideal;
-                }
 
-                else
-                {
-                    return BPCategory.Low;
-                }
+                if (Systolic >= 120 || Diastolic >= 80)
+                    return BPCategory.PreHigh;
+
+                if (Systolic >= 90 && Diastolic >= 60)
+                    return BPCategory.Ideal;
+
+                return BPCategory.Low;
             }
         }
     }
