@@ -1,0 +1,7 @@
+{
+    "bindingAssembly": "BPCalculator.BDDTests",
+    "generateMetadataFiles": true,
+    "stepAssemblies": [
+        { "assembly": "BPCalculator.BDDTests" }
+    ]
+}
