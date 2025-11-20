@@ -1,0 +1,100 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+
+    # OWASP DEPENDENCY CHECK
+
+    - name: OWASP Dependency Check
+      uses: dependency-check/Dependency-Check_Action@v0.7.5
+      with:
+        project: "BP Calculator"
+        path: "./"
+        format: "HTML"
+        out: "dependency-check-report"
+        failOnCVSS: 7
+
+    - name: Upload OWASP Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-check-report
+        path: dependency-check-report
+
+
+    # SETUP .NET
+
+    - name: Setup .NET 9
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: "9.0.x"
+
+
+    # SONARCLOUD SETUP
+
+    - name: Setup SonarCloud
+      uses: SonarSource/sonarcloud-github-action@v2
+
+    - name: Run SonarCloud Scan
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        dotnet tool install --global dotnet-sonarscanner
+        dotnet sonarscanner begin \
+            /k:"YOUR_PROJECT_KEY" \
+            /o:"YOUR_ORG" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.vscoveragexml.reportsPaths="**/coverage.cobertura.xml"
+
+
+    # RESTORE + BUILD
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release
+
+
+    # TESTS: xUnit + Reqnroll BDD
+
+    - name: Run Tests with Coverage
+      run: dotnet test --no-build --configuration Release \
+          /p:CollectCoverage=true \
+          /p:CoverletOutputFormat=cobertura \
+          /p:Threshold=80 \
+          /p:ThresholdType=line \
+          /p:ThresholdStat=total
+
+
+    # UPLOAD COVERAGE REPORT
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: "**/coverage.cobertura.xml"
+
+
+    # CODE FORMATTING CHECK
+
+    - name: Lint C# code
+      run: dotnet format --verify-no-changes
+
+
+    # SONARCLOUD END
+
+    - name: Complete SonarCloud Scan
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
