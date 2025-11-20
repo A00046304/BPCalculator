@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+
+    # CHECKOUT
+
     - name: Checkout Repository
       uses: actions/checkout@v4
 
@@ -22,15 +26,13 @@ jobs:
         dotnet-version: "9.0.x"
 
 
-
     # INSTALL SONAR SCANNER
 
     - name: Install SonarScanner for .NET
       run: dotnet tool install --global dotnet-sonarscanner
 
 
-
-    # SONARCLOUD BEGIN (FIXED org + URL)
+    # SONARCLOUD - BEGIN
 
     - name: SonarCloud - Begin Analysis
       env:
@@ -41,8 +43,7 @@ jobs:
           /o:"a00046304" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-          /d:sonar.cs.opencover.reportsPaths="**/coverage.cobertura.xml"
-
+          /d:sonar.cs.opencover.reportsPaths="coverage/*.xml"
 
 
     # RESTORE + BUILD
@@ -54,31 +55,37 @@ jobs:
       run: dotnet build --configuration Release
 
 
-
-    # RUN UNIT + BDD TESTS WITH COVERAGE
+    # RUN TESTS (UNIT + BDD)
 
     - name: Run Tests with Coverage
-      run: dotnet test --no-build --configuration Release \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=cobertura \
-            /p:CoverletOutput=./coverage/coverage.cobertura.xml
+      run: |
+        mkdir -p coverage
+
+        echo "Running UNIT TESTS..."
+        dotnet test BPCalculator.Tests/BPCalculator.Tests.csproj --configuration Release \
+          /p:CollectCoverage=true \
+          /p:CoverletOutput=../coverage/unit.xml \
+          /p:CoverletOutputFormat=cobertura
+
+        echo "Running BDD TESTS..."
+        dotnet test BPCalculator.BDDTests/BPCalculator.BDDTests.csproj --configuration Release \
+          /p:CollectCoverage=true \
+          /p:CoverletOutput=../coverage/bdd.xml \
+          /p:CoverletOutputFormat=cobertura
 
 
-
-    # UPLOAD COVERAGE REPORT
+    # UPLOAD COVERAGE FILES
 
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: "**/coverage.cobertura.xml"
+        path: coverage/*.xml
 
 
-   
-    # SONARCLOUD END (FIXED)
- 
+    # SONARCLOUD - END
+
     - name: SonarCloud - End Analysis
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: dotnet-sonarscanner end \
-          /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+      run: dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
