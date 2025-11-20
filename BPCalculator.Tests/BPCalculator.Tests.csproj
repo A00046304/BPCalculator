@@ -24,5 +24,15 @@
   <ItemGroup>
     <ProjectReference Include="..\BPCalculator\BPCalculator.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.6.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+
+    <!-- REQUIRED FOR COVERAGE -->
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="coverlet.msbuild" Version="6.0.0" />
+  </ItemGroup>
 	
 </Project>
