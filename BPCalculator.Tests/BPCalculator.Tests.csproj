@@ -24,16 +24,5 @@
   <ItemGroup>
     <ProjectReference Include="..\BPCalculator\BPCalculator.csproj" />
   </ItemGroup>
-
-<ItemGroup>
-    <!-- Reqnroll BDD Framework -->
-    <PackageReference Include="Reqnroll" Version="1.0.96" />
-    <PackageReference Include="Reqnroll.xUnit" Version="1.0.96" />
-    <PackageReference Include="Reqnroll.Tools" Version="1.0.96" />
-
-    <!-- REQUIRED FOR COVERAGE -->
-    <PackageReference Include="coverlet.collector" Version="6.0.0" />
-    <PackageReference Include="coverlet.msbuild" Version="6.0.0" />
-  </ItemGroup>
 	
 </Project>
