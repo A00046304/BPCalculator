@@ -11,12 +11,10 @@ jobs:
 
     steps:
 
-
     # CHECKOUT
 
     - name: Checkout Repository
       uses: actions/checkout@v4
-
 
     # SETUP .NET
 
@@ -25,14 +23,12 @@ jobs:
       with:
         dotnet-version: "9.0.x"
 
-
     # INSTALL SONAR SCANNER
 
     - name: Install SonarScanner for .NET
       run: dotnet tool install --global dotnet-sonarscanner
 
-
-    # SONARCLOUD - BEGIN
+    # SONARCLOUD BEGIN
 
     - name: SonarCloud - Begin Analysis
       env:
@@ -53,8 +49,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release
 
-
-    # RUN TESTS (UNIT + BDD)
+    # RUN UNIT + BDD TESTS
 
     - name: Run Tests with Coverage
       run: |
@@ -63,17 +58,16 @@ jobs:
         echo "Running UNIT TESTS..."
         dotnet test BPCalculator.Tests/BPCalculator.Tests.csproj --configuration Release \
           /p:CollectCoverage=true \
-          /p:CoverletOutput=../coverage/unit.xml \
+          /p:CoverletOutput="$(pwd)/coverage/unit.xml" \
           /p:CoverletOutputFormat=cobertura
 
         echo "Running BDD TESTS..."
         dotnet test BPCalculator.BDDTests/BPCalculator.BDDTests.csproj --configuration Release \
           /p:CollectCoverage=true \
-          /p:CoverletOutput=../coverage/bdd.xml \
+          /p:CoverletOutput="$(pwd)/coverage/bdd.xml" \
           /p:CoverletOutputFormat=cobertura
 
-
-    # UPLOAD COVERAGE FILES
+    # UPLOAD COVERAGE REPORTS
 
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
@@ -81,8 +75,7 @@ jobs:
         name: coverage-report
         path: coverage/*.xml
 
-
-    # SONARCLOUD - END
+    # SONARCLOUD END
 
     - name: SonarCloud - End Analysis
       env:
