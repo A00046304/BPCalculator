@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!-- Use net9.0 if your main project is net9.0; 
-         if everything else is net10.0, keep net10.0 -->
 		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
@@ -10,27 +8,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- Test infrastructure -->
+		<!-- Test framework -->
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
 		<PackageReference Include="xunit" Version="2.9.3" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 
-		<!-- Reqnroll BDD framework (ONLY ONCE, latest version) -->
+		<!-- Reqnroll BDD Framework -->
 		<PackageReference Include="Reqnroll" Version="3.2.1" />
 		<PackageReference Include="Reqnroll.xUnit" Version="3.2.1" />
 
-		<!-- Coverage collector (single version) -->
+		<!-- Coverage -->
 		<PackageReference Include="coverlet.collector" Version="6.0.4">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Using Include="Xunit" />
 	</ItemGroup>
 
 	<ItemGroup>
