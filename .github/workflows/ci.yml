@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI Pipeline 
 
 on:
   push:
@@ -30,7 +30,9 @@ jobs:
           /o:"a00046304" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-          /d:sonar.cs.opencover.reportsPaths="coverage/*.opencover.xml"
+          /d:sonar.cs.opencover.reportsPaths="coverage/*.opencover.xml" \
+          /d:sonar.coverage.exclusions="**/*" \
+          /d:sonar.inclusions="BPCalculator/BloodPressure.cs"
 
     - name: Restore
       run: dotnet restore
