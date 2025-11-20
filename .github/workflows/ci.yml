@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ "master", "develop" ]
+    branches: ["master", "develop"]
   pull_request:
 
 jobs:
@@ -10,22 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-    # CHECKOUT
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    # SETUP .NET
     - name: Setup .NET 9
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: "9.0.x"
 
-    # INSTALL SONAR SCANNER
     - name: Install SonarScanner for .NET
       run: dotnet tool install --global dotnet-sonarscanner
 
-    # SONARCLOUD BEGIN
     - name: SonarCloud - Begin Analysis
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -35,40 +30,36 @@ jobs:
           /o:"a00046304" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-          /d:sonar.cs.cobertura.reportsPaths="coverage/*.xml"
+          /d:sonar.cs.opencover.reportsPaths="coverage/*.opencover.xml"
 
-    # RESTORE + BUILD
     - name: Restore
       run: dotnet restore
 
     - name: Build
       run: dotnet build --configuration Release
 
-    # RUN UNIT + BDD TESTS
-    - name: Run Tests with Coverage
+    - name: Run Tests with OpenCover Coverage
       run: |
         mkdir -p coverage
-
+        
         echo "Running UNIT TESTS..."
         dotnet test BPCalculator.Tests/BPCalculator.Tests.csproj --configuration Release \
-          /p:CollectCoverage=true \
-          /p:CoverletOutput="$(pwd)/coverage/unit.xml" \
-          /p:CoverletOutputFormat=cobertura
+            /p:CollectCoverage=true \
+            /p:CoverletOutput=$(pwd)/coverage/unit.opencover.xml \
+            /p:CoverletOutputFormat=opencover
 
         echo "Running BDD TESTS..."
         dotnet test BPCalculator.BDDTests/BPCalculator.BDDTests.csproj --configuration Release \
-          /p:CollectCoverage=true \
-          /p:CoverletOutput="$(pwd)/coverage/bdd.xml" \
-          /p:CoverletOutputFormat=cobertura
+            /p:CollectCoverage=true \
+            /p:CoverletOutput=$(pwd)/coverage/bdd.opencover.xml \
+            /p:CoverletOutputFormat=opencover
 
-    # UPLOAD COVERAGE REPORTS
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: coverage/*.xml
+        path: coverage/*.opencover.xml
 
-    # SONARCLOUD END
     - name: SonarCloud - End Analysis
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
