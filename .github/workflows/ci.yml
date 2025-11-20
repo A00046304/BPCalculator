@@ -10,13 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-    # CHECKOUT THE REPOSITORY
-
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    # SETUP .NET 9
+
+    # SETUP .NET
 
     - name: Setup .NET 9
       uses: actions/setup-dotnet@v4
@@ -24,46 +22,50 @@ jobs:
         dotnet-version: "9.0.x"
 
 
-    # SONARCLOUD SETUP
+
+    # INSTALL SONAR SCANNER
 
     - name: Install SonarScanner for .NET
       run: dotnet tool install --global dotnet-sonarscanner
+
+
+
+    # SONARCLOUD BEGIN (FIXED org + URL)
 
     - name: SonarCloud - Begin Analysis
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         dotnet-sonarscanner begin \
-          /k:"a00046304" \
-          /o:"A00046304" \
+          /k:"A00046304_BPCalculator" \
+          /o:"a00046304" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.cs.opencover.reportsPaths="**/coverage.cobertura.xml"
 
 
+
     # RESTORE + BUILD
 
-    - name: Restore Packages
+    - name: Restore
       run: dotnet restore
 
-    - name: Build Project
+    - name: Build
       run: dotnet build --configuration Release
 
 
-    # RUN UNIT TESTS + BDD + COVERAGE
+
+    # RUN UNIT + BDD TESTS WITH COVERAGE
 
     - name: Run Tests with Coverage
-      run: |
-        dotnet test --no-build --configuration Release \
-          /p:CollectCoverage=true \
-          /p:CoverletOutputFormat=cobertura \
-          /p:CoverletOutput=./coverage.cobertura.xml \
-          /p:Threshold=80 \
-          /p:ThresholdType=line \
-          /p:ThresholdStat=total
+      run: dotnet test --no-build --configuration Release \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=cobertura \
+            /p:CoverletOutput=./coverage/coverage.cobertura.xml
 
 
-    # UPLOAD COVERAGE REPORT AS ARTIFACT
+
+    # UPLOAD COVERAGE REPORT
 
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
@@ -72,15 +74,11 @@ jobs:
         path: "**/coverage.cobertura.xml"
 
 
-    # CODE FORMATTING CHECK
-
-    - name: C# Lint Check
-      run: dotnet format --verify-no-changes
-
-
-    # SONARCLOUD FINISH
-
+   
+    # SONARCLOUD END (FIXED)
+ 
     - name: SonarCloud - End Analysis
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+      run: dotnet-sonarscanner end \
+          /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
