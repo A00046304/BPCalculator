@@ -45,7 +45,6 @@ jobs:
           /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
           /d:sonar.cs.opencover.reportsPaths="**/coverage/*.xml"
 
-
     # RESTORE + BUILD
 
     - name: Restore
