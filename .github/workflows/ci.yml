@@ -12,24 +12,20 @@ jobs:
     steps:
 
     # CHECKOUT
-
     - name: Checkout Repository
       uses: actions/checkout@v4
 
     # SETUP .NET
-
     - name: Setup .NET 9
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: "9.0.x"
 
     # INSTALL SONAR SCANNER
-
     - name: Install SonarScanner for .NET
       run: dotnet tool install --global dotnet-sonarscanner
 
     # SONARCLOUD BEGIN
-
     - name: SonarCloud - Begin Analysis
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -39,10 +35,9 @@ jobs:
           /o:"a00046304" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-          /d:sonar.cs.opencover.reportsPaths="coverage/*.xml"
+          /d:sonar.cs.cobertura.reportsPaths="coverage/*.xml"
 
     # RESTORE + BUILD
-
     - name: Restore
       run: dotnet restore
 
@@ -50,7 +45,6 @@ jobs:
       run: dotnet build --configuration Release
 
     # RUN UNIT + BDD TESTS
-
     - name: Run Tests with Coverage
       run: |
         mkdir -p coverage
@@ -68,7 +62,6 @@ jobs:
           /p:CoverletOutputFormat=cobertura
 
     # UPLOAD COVERAGE REPORTS
-
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
       with:
@@ -76,7 +69,6 @@ jobs:
         path: coverage/*.xml
 
     # SONARCLOUD END
-
     - name: SonarCloud - End Analysis
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
