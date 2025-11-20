@@ -51,8 +51,8 @@ jobs:
       run: |
         dotnet tool install --global dotnet-sonarscanner
         dotnet sonarscanner begin \
-            /k:"YOUR_PROJECT_KEY" \
-            /o:"YOUR_ORG" \
+            /k:"a00046304" \
+            /o:"A00046304" \
             /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.cs.vscoveragexml.reportsPaths="**/coverage.cobertura.xml"
 
