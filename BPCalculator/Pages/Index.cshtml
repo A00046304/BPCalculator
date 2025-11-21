@@ -5,36 +5,43 @@
     ViewData["Title"] = "BP Category Calculator";
 }
 
+<h2>BP Category Calculator</h2>
 
-<h4>BP Category Calculator</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post" id="form1">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="BP.Systolic" class="control-label"></label>
-                <input asp-for="BP.Systolic" class="form-control"/>
-                <span asp-validation-for="BP.Systolic" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="BP.Diastolic" class="control-label"></label>
-                <input asp-for="BP.Diastolic" class="form-control" />
-                <span asp-validation-for="BP.Diastolic" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Submit" class="btn btn-default" />
-            </div>
-            @if (ViewData.ModelState.IsValid)
-            {
-                <div class="form-group">
-                    @Html.DisplayFor(model => model.BP.Category, new { htmlAttributes = new { @class = "form-control" } })
-                </div>
-            }
-        </form>
+<form method="post">
+    <div>
+        <label>Systolic</label>
+        <input asp-for="BP.Systolic" class="form-control" />
+        <span asp-validation-for="BP.Systolic" class="text-danger"></span>
     </div>
-</div>
+
+    <div>
+        <label>Diastolic</label>
+        <input asp-for="BP.Diastolic" class="form-control" />
+        <span asp-validation-for="BP.Diastolic" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+</form>
+
+@if (Model.BP != null && Model.ErrorMessage == null)
+{
+    <h3 class="mt-4">Result</h3>
+
+    <p><strong>Category:</strong> @Model.BP.Category</p>
+
+    @if (!string.IsNullOrEmpty(Model.BP.MedicationMessage))
+    {
+        <p><strong>Medication Advice:</strong> @Model.BP.MedicationMessage</p>
+    }
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">
+        @Model.ErrorMessage
+    </div>
+}
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
 }
