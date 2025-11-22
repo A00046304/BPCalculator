@@ -20,7 +20,7 @@ jobs:
         path: ~/.dependency-check
         key: ${{ runner.os }}-dependency-check
         restore-keys: |
-          ${{ runner.os }}-dependency-check
+         ${{ runner.os }}-dependency-check
  
     - name: Run OWASP Dependency-Check
       uses: dependency-check/Dependency-Check_Action@main
@@ -29,7 +29,7 @@ jobs:
         path: "."
         format: "HTML"
         out: "dependency-check-report"
-
+ 
     - name: Upload Dependency-Check report
       uses: actions/upload-artifact@v4
       with:
@@ -66,13 +66,13 @@ jobs:
         mkdir -p coverage
         
         echo "Running UNIT TESTS..."
-        dotnet test BPCalculator.Tests/BPCalculator.Tests.csproj --configuration Release --no-build \
+        dotnet test BPCalculator.Tests/BPCalculator.Tests.csproj --configuration Release \
             /p:CollectCoverage=true \
             /p:CoverletOutput=$(pwd)/coverage/unit.opencover.xml \
             /p:CoverletOutputFormat=opencover
 
         echo "Running BDD TESTS..."
-        dotnet test BPCalculator.BDDTests/BPCalculator.BDDTests.csproj --configuration Release --no-build \
+        dotnet test BPCalculator.BDDTests/BPCalculator.BDDTests.csproj --configuration Release \
             /p:CollectCoverage=true \
             /p:CoverletOutput=$(pwd)/coverage/bdd.opencover.xml \
             /p:CoverletOutputFormat=opencover
