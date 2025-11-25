@@ -1,173 +1,144 @@
 name: CD Pipeline
 
 on:
-  # Deployment is only from master (your release branch)
   push:
-    branches: ["master"]
-  workflow_dispatch:
-
-env:
-  # URLs – adjust if your slot name / region changes
-  QA_URL: "https://bp-qa-webapp.azurewebsites.net"
-  GREEN_URL: "https://bp-prod-webapp-green.azurewebsites.net"
-  PROD_URL: "https://bp-prod-webapp.azurewebsites.net"
+    branches: ["develop"]
 
 jobs:
-  # -------------------------------------------------------------------
-  # 1. Build once and publish artefact
-  # -------------------------------------------------------------------
-  build_webapp:
-    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  # 1) Deploy to QA Environment
 
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "9.0.x"
-
-      - name: Restore
-        run: dotnet restore
-
-      - name: Publish web app
-        run: dotnet publish BPCalculator/BPCalculator.csproj -c Release -o ./publish
-
-      - name: Upload published artefact
-        uses: actions/upload-artifact@v4
-        with:
-          name: webapp-publish
-          path: ./publish
-
-  # -------------------------------------------------------------------
-  # 2. Deploy to QA and run Selenium E2E tests
-  # -------------------------------------------------------------------
   deploy_qa:
+    name: Deploy to QA
     runs-on: ubuntu-latest
-    needs: build_webapp
-    environment: qa   # create "qa" environment in GitHub if you want approvals
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout Repo
+      uses: actions/checkout@v4
 
-      - name: Download webapp artefact
-        uses: actions/download-artifact@v4
-        with:
-          name: webapp-publish
-          path: ./publish
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-output
+        path: ./app
 
-      - name: Deploy to QA Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          # Secret containing the *full* publish profile XML
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_QA }}
-          package: ./publish
+    # Azure Web App QA deployment
+    - name: Deploy to Azure Web App (QA)
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: "bp-webapp"
+        slot-name: "qa"
+        publish-profile: ${{ secrets.AZURE_PUBLISH_QA }}
+        package: ./app
 
-      # --- Selenium E2E tests against QA ---------------------
-      - name: Setup .NET 9 for tests
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "9.0.x"
+    #  QA Testing 
 
-      - name: Install Chrome
-        uses: browser-actions/setup-chrome@v1
+    - name: Run E2E Tests
+      run: |
+        echo "Running E2E tests against QA..."
+        dotnet test E2E/E2E.Tests.csproj
 
-      - name: Install ChromeDriver
-        uses: nanasess/setup-chromedriver@v2
+    - name: Run Performance Tests (k6)
+      run: |
+        echo "Running k6 load tests"
+        k6 run performance-tests/bp_load_test.js
 
-      - name: Run Selenium E2E tests against QA URL
-        env:
-          APP_URL: ${{ env.QA_URL }}
-        run: |
-          echo "Running Selenium E2E tests against $APP_URL ..."
-          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj --configuration Release
+    - name: Run OWASP ZAP (DAST)
+      uses: zaproxy/action-full-scan@v0.10.0
+      with:
+        target: "https://bp-webapp-qa.azurewebsites.net"
 
-  # -------------------------------------------------------------------
-  # 3. Deploy to GREEN slot (pre-prod) and run k6 + ZAP
-  # -------------------------------------------------------------------
-  deploy_green:
+    - name: QA Environment Gate
+      if: failure()
+      run: |
+        echo "QA Tests Failed. Stopping Release."
+        exit 1
+
+  
+  # 2) Promote to Pre-Prod
+
+  deploy_preprod:
+    name: Deploy to Pre-Prod
     runs-on: ubuntu-latest
     needs: deploy_qa
-    environment: preprod   # create "preprod" environment if desired
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout Repo
+      uses: actions/checkout@v4
 
-      - name: Download webapp artefact
-        uses: actions/download-artifact@v4
-        with:
-          name: webapp-publish
-          path: ./publish
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-output
+        path: ./app
 
-      - name: Deploy to PROD green slot
-        uses: azure/webapps-deploy@v2
-        with:
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_PROD_GREEN }}
-          package: ./publish
+    - name: Deploy to Azure Web App (Pre-prod)
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: "bp-webapp"
+        slot-name: "preprod"
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PREPROD }}
+        package: ./app
 
-      # --- k6 performance test --------------------------------
-      - name: Run k6 smoke/performance tests against GREEN slot
-        uses: grafana/k6-action@v0.3
-        env:
-          K6_WEB_DASHBOARD: "false"
-          APP_URL: ${{ env.GREEN_URL }}
-        with:
-          filename: perf/k6-bp-smoke.js
+    - name: Smoke Tests
+      run: |
+        echo "Running smoke tests..."
+        curl -I https://bp-webapp-preprod.azurewebsites.net
 
-      # --- OWASP ZAP baseline security scan -------------------
-      - name: Run OWASP ZAP Baseline Scan against GREEN slot
-        uses: zaproxy/action-baseline@v0.10.0
-        with:
-          target: ${{ env.GREEN_URL }}
-          # Optional: tweak to keep scan short for pipeline
-          rules_file_name: ".zap/rules.tsv"
-          cmd_options: "-a"
+    - name: Pre-Prod Gate
+      if: failure()
+      run: |
+        echo "Pre-Prod Verification Failed!"
+        exit 1
 
-  # -------------------------------------------------------------------
-  # 4. Promote to PRODUCTION (blue slot) if all checks pass
-  # -------------------------------------------------------------------
+
+  # 3) Blue–Green Deployment to Production
+
   deploy_prod:
+    name: Blue-Green to Production
     runs-on: ubuntu-latest
-    needs: deploy_green
-    # Use GitHub "production" environment for manual approval gate
-    environment: production
+    needs: deploy_preprod
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout Repo
+      uses: actions/checkout@v4
 
-      - name: Download webapp artefact
-        uses: actions/download-artifact@v4
-        with:
-          name: webapp-publish
-          path: ./publish
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-output
+        path: ./app
 
-      - name: Deploy to PROD (blue) slot
-        uses: azure/webapps-deploy@v2
-        with:
-          # This publish profile should be for the main production slot
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_PROD }}
-          package: ./publish
+    # Deploy to Staging Slot
+    - name: Deploy to Staging Slot
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: "bp-webapp"
+        slot-name: "staging"
+        publish-profile: ${{ secrets.AZURE_PUBLISH_STAGING }}
+        package: ./app
 
-      # Optional: quick smoke E2E against production
-      - name: Setup .NET 9
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "9.0.x"
+    # Test in staging before final swap
+    - name: Test Staging Slot
+      run: |
+        echo "Health check..."
+        curl -I https://bp-webapp-staging.azurewebsites.net
 
-      - name: Install Chrome
-        uses: browser-actions/setup-chrome@v1
+    - name: OWASP ZAP Quick Scan
+      uses: zaproxy/action-baseline@v0.10.0
+      with:
+        target: "https://bp-webapp-staging.azurewebsites.net"
 
-      - name: Install ChromeDriver
-        uses: nanasess/setup-chromedriver@v2
+    # Blue–Green Swap
+    - name: Swap Staging to Production
+      uses: azure/cli@v2
+      with:
+        inlineScript: |
+          az webapp deployment slot swap \
+            --name bp-webapp \
+            --resource-group YOUR_RESOURCE_GROUP \
+            --slot staging \
+            --target-slot production
 
-      - name: Run Selenium smoke tests against PROD URL
-        env:
-          APP_URL: ${{ env.PROD_URL }}
-        run: |
-          echo "Running Selenium smoke tests against $APP_URL ..."
-          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj --configuration Release \
-            --filter "Category=Smoke"
+    - name: Deployment Complete
+      run: echo "Blue–Green Deployment to Production Successful!"
