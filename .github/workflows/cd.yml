@@ -62,7 +62,7 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           # Secret containing the *full* publish profile XML
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_QA }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_QA }}
           package: ./publish
 
       # --- Selenium E2E tests against QA ---------------------
