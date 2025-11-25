@@ -77,7 +77,7 @@ jobs:
           APP_URL: "https://bp-qa-webapp.azurewebsites.net"
         run: |
           echo "Running Selenium E2E tests..."
-          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj --configuration Release
+          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj --logger trx
 
   
   # 3) Deploy to Staging/Pre-Prod + k6+ZAP
