@@ -26,7 +26,7 @@ namespace BPCalculator.E2ETests
             _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(5));
 
             _baseUrl = Environment.GetEnvironmentVariable("BP_E2E_BASEURL")
-                       ?? "http://localhost:53135/";
+                       ?? "bp-qa-webapp.azurewebsites.net";
         }
 
         public void Dispose()
