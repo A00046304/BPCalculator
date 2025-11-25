@@ -163,8 +163,3 @@ jobs:
           echo "Checking prod staging slot health..."
           curl -I https://bp-prod-webapp-staging.azurewebsites.net || exit 1
 
-      - name: Info: manual slot swap required
-        run: |
-          echo "Deployment to bp-prod-webapp STAGING slot completed."
-          echo "For full blue/green release, perform a SLOT SWAP"
-          echo "in the Azure Portal: swap 'staging' -> 'production'."

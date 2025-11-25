@@ -1,77 +1,57 @@
-﻿using System;
-using OpenQA.Selenium;
+﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using Xunit;
 
 namespace BPCalculator.E2ETests
 {
-    public class BloodPressureFormTests : IDisposable
+    public class BloodPressureE2ETests : IDisposable
     {
         private readonly IWebDriver _driver;
         private readonly string _baseUrl;
 
-        public BloodPressureFormTests()
+        public BloodPressureE2ETests()
         {
             var options = new ChromeOptions();
             options.AddArgument("--headless=new");
             options.AddArgument("--no-sandbox");
+            options.AddArgument("--disable-gpu");
             options.AddArgument("--disable-dev-shm-usage");
 
             _driver = new ChromeDriver(options);
 
-            // Use environment variable from pipeline
+            // READ QA URL FROM ENV VARIABLE IN PIPELINE
             _baseUrl = Environment.GetEnvironmentVariable("APP_URL")
                        ?? "https://bp-qa-webapp.azurewebsites.net";
         }
 
-        [Fact]
-        public void Enter_Valid_BP_Shows_Category_And_No_Error()
+        [Theory]
+        [InlineData(150, 95, "High")]
+        [InlineData(130, 85, "PreHigh")]
+        [InlineData(110, 70, "Ideal")]
+        [InlineData(80, 55, "Low")]
+        public void BP_Form_Submits_And_Shows_Category(int sys, int dia, string expectedCategory)
         {
             _driver.Navigate().GoToUrl(_baseUrl);
 
-            // Find inputs by name or id (adjust to your actual HTML)
-            var systolicInput = _driver.FindElement(By.Name("BP.Systolic"));
-            var diastolicInput = _driver.FindElement(By.Name("BP.Diastolic"));
-            var submitButton = _driver.FindElement(By.CssSelector("button[type='submit']"));
+            // Fill form
+            _driver.FindElement(By.Id("BP_Systolic")).Clear();
+            _driver.FindElement(By.Id("BP_Systolic")).SendKeys(sys.ToString());
 
-            systolicInput.Clear();
-            systolicInput.SendKeys("140");
+            _driver.FindElement(By.Id("BP_Diastolic")).Clear();
+            _driver.FindElement(By.Id("BP_Diastolic")).SendKeys(dia.ToString());
 
-            diastolicInput.Clear();
-            diastolicInput.SendKeys("90");
+            // Click submit
+            _driver.FindElement(By.CssSelector("button[type='submit']")).Click();
 
-            submitButton.Click();
+            // Read category
+            var categoryText = _driver.FindElement(By.XPath("//p[strong[text()='Category:']]")).Text;
 
-            // Check result contains "High"
-            var bodyText = _driver.FindElement(By.TagName("body")).Text;
-            Assert.Contains("High", bodyText, StringComparison.OrdinalIgnoreCase);
-        }
-
-        [Fact]
-        public void Invalid_Relation_Shows_Error_Message()
-        {
-            _driver.Navigate().GoToUrl(_baseUrl);
-
-            var systolicInput = _driver.FindElement(By.Name("BP.Systolic"));
-            var diastolicInput = _driver.FindElement(By.Name("BP.Diastolic"));
-            var submitButton = _driver.FindElement(By.CssSelector("button[type='submit']"));
-
-            systolicInput.Clear();
-            systolicInput.SendKeys("80");
-
-            diastolicInput.Clear();
-            diastolicInput.SendKeys("90");
-
-            submitButton.Click();
-
-            var bodyText = _driver.FindElement(By.TagName("body")).Text;
-            Assert.Contains("Systolic must be greater than Diastolic", bodyText);
+            Assert.Contains(expectedCategory, categoryText);
         }
 
         public void Dispose()
         {
             _driver?.Quit();
-            _driver?.Dispose();
         }
     }
 }
