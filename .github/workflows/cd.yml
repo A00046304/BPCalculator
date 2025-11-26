@@ -54,7 +54,7 @@ jobs:
       uses: azure/webapps-deploy@v3
       with:
         app-name: "bp-qa-webapp"
-        publish-profile: ${{ secrets.QA_PUBLISH_PROFILE }}
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_QA }}
         package: published
 
     # Install Chrome
