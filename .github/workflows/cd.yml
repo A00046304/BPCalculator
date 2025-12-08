@@ -1,143 +1,116 @@
-name: CD Pipeline
+name: CD Pipeline (Slot Swap)
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - master
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed     # deploy only from master
+  workflow_dispatch:         # allow manual runs
 
 env:
-  DOTNET_VERSION: "9.0.x"
-  PROJECT_PATH: "BPCalculator/BPCalculator.csproj"
+  # URLs – update if your slot names / regions are different
+  QA_URL: "https://bp-qa-webapp.azurewebsites.net"
+  STAGING_URL: "https://bp-prod-webapp-staging.azurewebsites.net"
+  PROD_URL: "https://bp-prod-webapp.azurewebsites.net"
+
+  # Prod app + resource group (used by slot swap)
+  AZURE_WEBAPP_NAME: "bp-prod-webapp"
+  AZURE_RESOURCE_GROUP: "rg-bp-calculator"
 
 jobs:
-  build:
+
+
+  build_webapp:
     runs-on: ubuntu-latest
 
     steps:
-    - name:  Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name:  Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
 
-    - name:  Restore
-      run: dotnet restore
+      - name: Restore
+        run: dotnet restore
 
-    - name:  Build App
-      run: dotnet build --configuration Release
+      - name: Publish web app
+        run: dotnet publish BPCalculator/BPCalculator.csproj -c Release -o ./publish
 
-    - name:  Publish Artifact
-      run: dotnet publish -c Release -o published
+      - name: Upload published artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-publish
+          path: ./publish
 
-    - name:  Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app
-        path: published/
 
   deploy_qa:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build_webapp
+    environment: qa
 
     steps:
-    - name:  Download App Package
-      uses: actions/download-artifact@v4
-      with:
-        name: app
-        path: published
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    # Deploy to QA slot using publish profile
-    - name:  Deploy to QA Slot
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: "bp-qa-webapp"
-        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_QA }}
-        package: published
+      - name: Download webapp artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: webapp-publish
+          path: ./publish
 
-    # Install Chrome
-    - name:  Install Chrome
-      uses: browser-actions/setup-chrome@v1
+      - name: Deploy to QA Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_QA }}
+          package: ./publish
 
-    # Install ChromeDriver
-    - name:  Install ChromeDriver
-      uses: nanasess/setup-chromedriver@v2
 
-    # Run Selenium Tests against QA Slot
-    - name:  Run Selenium E2E Tests
-      env:
-        BP_E2E_BASEURL: "https://bp-qa-webapp.azurewebsites.net"
-      run: |
-        echo "Running Selenium tests..."
-        dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj
 
-    # Run k6 Performance Test
-    - name:  Run k6 Performance Test
-      uses: grafana/k6-action@v0.3.1
-      with:
-        filename: perf/k6-bp-smoke.js
-      env:
-        TARGET_URL: "https://bp-qa-webapp.azurewebsites.net"
-
-  promote_to_staging:
+  deploy_staging:
+    runs-on: ubuntu-latest
     needs: deploy_qa
-    runs-on: ubuntu-latest
+    environment: preprod
 
     steps:
-    - name:  Swap QA → Staging
-      uses: azure/CLI@v2
-      with:
-        inlineScript: |
-          az webapp deployment slot swap \
-            --name bp-staging-webapp \
-            --resource-group rg-bp-calculator \
-            --slot qa \
-            --target-slot staging
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  test_staging:
-    needs: promote_to_staging
-    runs-on: ubuntu-latest
+      - name: Download webapp artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: webapp-publish
+          path: ./publish
 
-    steps:
-    - name:  Install Chrome
-      uses: browser-actions/setup-chrome@v1
+      - name: Deploy to STAGING slot of prod app
+        uses: azure/webapps-deploy@v2
+        with:
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_STAGING }}
+          package: ./publish
+          slot-name: "staging"
 
-    - name:  Install ChromeDriver
-      uses: nanasess/setup-chromedriver@v2
 
-    - name:  Run Selenium on Staging
-      env:
-        BP_E2E_BASEURL: "https://bp-staging-webapp.azurewebsites.net"
-      run: |
-        dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj
-
-  approve_for_prod:
-    needs: test_staging
-    runs-on: ubuntu-latest
-
-    steps:
-    - name:  Manual Approval Required
-      uses: trstringer/manual-approval@v1
-      with:
-        secret: ${{ secrets.GITHUB_TOKEN }}
-        approvers: harshith
 
   deploy_prod:
-    needs: approve_for_prod
     runs-on: ubuntu-latest
+    needs: deploy_green
+    # Use GitHub "production" environment for manual approval gate
+    environment: production
 
     steps:
-    - name: 🔄 Swap Staging → Production
-      uses: azure/CLI@v2
-      with:
-        inlineScript: |
-          az webapp deployment slot swap \
-            --name bp-prod-webapp \
-            --resource-group rg-bp-calculator \
-            --slot staging \
-            --target-slot production
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name:  Deployment Successful
-      run: echo "Production deployment completed!"
+      - name: Download webapp artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: webapp-publish
+          path: ./publish
+
+      - name: Deploy to PROD (blue) slot
+        uses: azure/webapps-deploy@v2
+        with:
+          # This publish profile should be for the main production slot
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_PROD }}
+          package: ./publish
