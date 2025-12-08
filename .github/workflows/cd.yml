@@ -94,7 +94,7 @@ jobs:
 
   deploy_prod:
     runs-on: ubuntu-latest
-    needs: deploy_green
+    needs: deploy_staging
     # Use GitHub "production" environment for manual approval gate
     environment: production
 
