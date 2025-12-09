@@ -104,7 +104,7 @@ jobs:
       - name: Run k6 performance tests
         uses: grafana/k6-action@v0.3.1
         env:
-          APP_URL: ${{ env.STAGING_SLOT_URL }}
+          BASE_URL: ${{ env.STAGING_SLOT_URL }}
         with:
           filename: perf/k6-bp-smoke.js
 
