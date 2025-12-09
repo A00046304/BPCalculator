@@ -23,10 +23,13 @@ namespace BPCalculator.E2ETests
 
             _driver = new ChromeDriver(options);
 
-            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(5));
+            // Give the deployed app a bit more time to respond
+            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
+            _wait.IgnoreExceptionTypes(typeof(StaleElementReferenceException));
 
+            // Use env var in CI, sensible fallback locally
             _baseUrl = Environment.GetEnvironmentVariable("BP_E2E_BASEURL")
-                       ?? "bp-qa-webapp.azurewebsites.net";
+                       ?? "https://bp-qa-webapp.azurewebsites.net";
         }
 
         public void Dispose()
@@ -54,49 +57,61 @@ namespace BPCalculator.E2ETests
 
         private string? WaitForCategory()
         {
-            try
+            return _wait.Until(driver =>
             {
-                var element = _wait.Until(d =>
-                    d.FindElement(By.XPath("//p[strong[contains(.,'Category')]]"))
-                );
-                return element.Text;
-            }
-            catch (WebDriverTimeoutException)
-            {
-                return null;
-            }
+                try
+                {
+                    var el = driver.FindElement(By.XPath("//p[strong[contains(.,'Category')]]"));
+                    var text = el.Text?.Trim();
+                    return string.IsNullOrEmpty(text) ? null : text;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    // DOM updated; retry
+                    return null;
+                }
+            });
         }
 
         private string? WaitForMedication()
         {
-            try
+            return _wait.Until(driver =>
             {
-                var element = _wait.Until(d =>
-                    d.FindElement(By.XPath("//p[strong[contains(.,'Medication Advice')]]"))
-                );
-                return element.Text;
-            }
-            catch (WebDriverTimeoutException)
-            {
-                return null;
-            }
+                try
+                {
+                    var el = driver.FindElement(By.XPath("//p[strong[contains(.,'Medication Advice')]]"));
+                    var text = el.Text?.Trim();
+                    return string.IsNullOrEmpty(text) ? null : text;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return null;
+                }
+            });
         }
 
         private string? WaitForErrorMessage()
         {
-            try
+            return _wait.Until(driver =>
             {
-                var element = _wait.Until(d =>
-                    d.FindElement(By.CssSelector("div.alert.alert-danger"))
-                );
-                return element.Text;
-            }
-            catch (WebDriverTimeoutException)
-            {
-                return null;
-            }
+                try
+                {
+                    var el = driver.FindElement(By.CssSelector("div.alert.alert-danger"));
+                    var text = el.Text?.Trim();
+                    // if no error shown yet, keep waiting
+                    return string.IsNullOrEmpty(text) ? null : text;
+                }
+                catch (NoSuchElementException)
+                {
+                    // no error div yet – keep waiting
+                    return null;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return null;
+                }
+            });
         }
-
 
         [Theory]
         [InlineData(150, 95, "High", "Consider consulting a doctor about BP medication.")]
@@ -115,13 +130,14 @@ namespace BPCalculator.E2ETests
             var medication = WaitForMedication();
             var error = WaitForErrorMessage();
 
-            Assert.Null(error);                               
-            Assert.NotNull(category);                      
+            // No validation error
+            Assert.Null(error);
+
+            Assert.NotNull(category);
             Assert.NotNull(medication);
 
             Assert.Contains(expectedCategoryFragment, category);
             Assert.Contains(expectedMedicationMessage, medication);
         }
-
     }
 }
