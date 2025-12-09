@@ -17,22 +17,21 @@ namespace BPCalculator.BDDTests.Features
     
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "3.0.0.0")]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class BloodPressureCategoryFeature : object, global::Xunit.IClassFixture<BloodPressureCategoryFeature.FixtureData>, global::Xunit.IAsyncLifetime
+    public partial class BloodPressureEvaluationFeature : object, global::Xunit.IClassFixture<BloodPressureEvaluationFeature.FixtureData>, global::Xunit.IAsyncLifetime
     {
         
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "Features", "Blood Pressure Category", "  In order to understand my blood pressure\r\n  As a patient\r\n  I want to see the c" +
-                "ategory for my systolic and diastolic values", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags, InitializeCucumberMessages());
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "Features", "Blood Pressure Evaluation", "    Validates readings, determines category, and returns medication message.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags, InitializeCucumberMessages());
         
         private global::Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
 #line 1 "BloodPressureCategory.feature"
 #line hidden
         
-        public BloodPressureCategoryFeature(BloodPressureCategoryFeature.FixtureData fixtureData, global::Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public BloodPressureEvaluationFeature(BloodPressureEvaluationFeature.FixtureData fixtureData, global::Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
         }
@@ -106,7 +105,7 @@ namespace BPCalculator.BDDTests.Features
         
         private static global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages InitializeCucumberMessages()
         {
-            return new global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages("Features/BloodPressureCategory.feature.ndjson", 10);
+            return new global::Reqnroll.Formatters.RuntimeSupport.FeatureLevelCucumberMessages("Features/BloodPressureCategory.feature.ndjson", 16);
         }
         
         async global::System.Threading.Tasks.Task global::Xunit.IAsyncLifetime.InitializeAsync()
@@ -134,26 +133,26 @@ namespace BPCalculator.BDDTests.Features
             await this.TestTearDownAsync();
         }
         
-        [global::Xunit.SkippableTheoryAttribute(DisplayName="Classifying valid blood pressure readings")]
-        [global::Xunit.TraitAttribute("FeatureTitle", "Blood Pressure Category")]
-        [global::Xunit.TraitAttribute("Description", "Classifying valid blood pressure readings")]
+        [global::Xunit.SkippableTheoryAttribute(DisplayName="Category calculation works correctly")]
+        [global::Xunit.TraitAttribute("FeatureTitle", "Blood Pressure Evaluation")]
+        [global::Xunit.TraitAttribute("Description", "Category calculation works correctly")]
         [global::Xunit.InlineDataAttribute("150", "95", "High", "0", new string[0])]
-        [global::Xunit.InlineDataAttribute("130", "85", "PreHigh", "1", new string[0])]
-        [global::Xunit.InlineDataAttribute("110", "70", "Ideal", "2", new string[0])]
+        [global::Xunit.InlineDataAttribute("130", "70", "PreHigh", "1", new string[0])]
+        [global::Xunit.InlineDataAttribute("100", "70", "Ideal", "2", new string[0])]
         [global::Xunit.InlineDataAttribute("80", "55", "Low", "3", new string[0])]
-        public async global::System.Threading.Tasks.Task ClassifyingValidBloodPressureReadings(string systolic, string diastolic, string expectedCategory, string @__pickleIndex, string[] exampleTags)
+        public async global::System.Threading.Tasks.Task CategoryCalculationWorksCorrectly(string sys, string dia, string expected, string @__pickleIndex, string[] exampleTags)
         {
             string[] tagsOfScenario = exampleTags;
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
-            argumentsOfScenario.Add("systolic", systolic);
-            argumentsOfScenario.Add("diastolic", diastolic);
-            argumentsOfScenario.Add("expectedCategory", expectedCategory);
+            argumentsOfScenario.Add("sys", sys);
+            argumentsOfScenario.Add("dia", dia);
+            argumentsOfScenario.Add("expected", expected);
             string pickleIndex = @__pickleIndex;
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Classifying valid blood pressure readings", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Category calculation works correctly", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 6
-  this.ScenarioInitialize(scenarioInfo, ruleInfo);
+#line 4
+this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -162,41 +161,43 @@ namespace BPCalculator.BDDTests.Features
             else
             {
                 await this.ScenarioStartAsync();
+#line 5
+    await testRunner.GivenAsync(string.Format("I enter a systolic value of {0}", sys), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 6
+    await testRunner.AndAsync(string.Format("I enter a diastolic value of {0}", dia), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
 #line 7
-    await testRunner.GivenAsync(string.Format("I enter a systolic value of {0}", systolic), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
-#line hidden
-#line 8
-    await testRunner.AndAsync(string.Format("I enter a diastolic value of {0}", diastolic), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 9
     await testRunner.WhenAsync("I calculate the blood pressure category", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 10
-    await testRunner.ThenAsync(string.Format("the result should be \"{0}\"", expectedCategory), ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line 8
+    await testRunner.ThenAsync(string.Format("the result should be \"{0}\"", expected), ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
-        [global::Xunit.SkippableTheoryAttribute(DisplayName="Handling invalid readings")]
-        [global::Xunit.TraitAttribute("FeatureTitle", "Blood Pressure Category")]
-        [global::Xunit.TraitAttribute("Description", "Handling invalid readings")]
-        [global::Xunit.InlineDataAttribute("60", "50", "4", new string[0])]
-        [global::Xunit.InlineDataAttribute("200", "90", "5", new string[0])]
-        [global::Xunit.InlineDataAttribute("120", "30", "6", new string[0])]
-        [global::Xunit.InlineDataAttribute("100", "100", "7", new string[0])]
-        public async global::System.Threading.Tasks.Task HandlingInvalidReadings(string systolic, string diastolic, string @__pickleIndex, string[] exampleTags)
+        [global::Xunit.SkippableTheoryAttribute(DisplayName="Validation errors are triggered")]
+        [global::Xunit.TraitAttribute("FeatureTitle", "Blood Pressure Evaluation")]
+        [global::Xunit.TraitAttribute("Description", "Validation errors are triggered")]
+        [global::Xunit.InlineDataAttribute("69", "60", "4", new string[0])]
+        [global::Xunit.InlineDataAttribute("191", "50", "5", new string[0])]
+        [global::Xunit.InlineDataAttribute("120", "39", "6", new string[0])]
+        [global::Xunit.InlineDataAttribute("120", "101", "7", new string[0])]
+        [global::Xunit.InlineDataAttribute("120", "120", "8", new string[0])]
+        [global::Xunit.InlineDataAttribute("100", "130", "9", new string[0])]
+        public async global::System.Threading.Tasks.Task ValidationErrorsAreTriggered(string sys, string dia, string @__pickleIndex, string[] exampleTags)
         {
             string[] tagsOfScenario = exampleTags;
             global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
-            argumentsOfScenario.Add("systolic", systolic);
-            argumentsOfScenario.Add("diastolic", diastolic);
+            argumentsOfScenario.Add("sys", sys);
+            argumentsOfScenario.Add("dia", dia);
             string pickleIndex = @__pickleIndex;
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Handling invalid readings", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Validation errors are triggered", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
             string[] tagsOfRule = ((string[])(null));
             global::Reqnroll.RuleInfo ruleInfo = null;
-#line 19
-  this.ScenarioInitialize(scenarioInfo, ruleInfo);
+#line 17
+this.ScenarioInitialize(scenarioInfo, ruleInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -205,17 +206,61 @@ namespace BPCalculator.BDDTests.Features
             else
             {
                 await this.ScenarioStartAsync();
+#line 18
+    await testRunner.GivenAsync(string.Format("I enter a systolic value of {0}", sys), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 19
+    await testRunner.AndAsync(string.Format("I enter a diastolic value of {0}", dia), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
 #line 20
-    await testRunner.GivenAsync(string.Format("I enter a systolic value of {0}", systolic), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
-#line hidden
-#line 21
-    await testRunner.AndAsync(string.Format("I enter a diastolic value of {0}", diastolic), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 22
     await testRunner.WhenAsync("I try to validate the reading", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 23
+#line 21
     await testRunner.ThenAsync("an error should be shown", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [global::Xunit.SkippableTheoryAttribute(DisplayName="Medication advice is accurate")]
+        [global::Xunit.TraitAttribute("FeatureTitle", "Blood Pressure Evaluation")]
+        [global::Xunit.TraitAttribute("Description", "Medication advice is accurate")]
+        [global::Xunit.InlineDataAttribute("150", "95", "Consider consulting a doctor about BP medication.", "10", new string[0])]
+        [global::Xunit.InlineDataAttribute("130", "70", "Monitor regularly; medication may be needed soon.", "11", new string[0])]
+        [global::Xunit.InlineDataAttribute("100", "70", "No medication needed.", "12", new string[0])]
+        [global::Xunit.InlineDataAttribute("80", "55", "Increase fluids or salt if recommended by your doctor.", "13", new string[0])]
+        public async global::System.Threading.Tasks.Task MedicationAdviceIsAccurate(string sys, string dia, string expected, string @__pickleIndex, string[] exampleTags)
+        {
+            string[] tagsOfScenario = exampleTags;
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
+            argumentsOfScenario.Add("sys", sys);
+            argumentsOfScenario.Add("dia", dia);
+            argumentsOfScenario.Add("expected", expected);
+            string pickleIndex = @__pickleIndex;
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Medication advice is accurate", null, tagsOfScenario, argumentsOfScenario, featureTags, pickleIndex);
+            string[] tagsOfRule = ((string[])(null));
+            global::Reqnroll.RuleInfo ruleInfo = null;
+#line 32
+this.ScenarioInitialize(scenarioInfo, ruleInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                await testRunner.SkipScenarioAsync();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 33
+    await testRunner.GivenAsync(string.Format("I enter a systolic value of {0}", sys), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 34
+    await testRunner.AndAsync(string.Format("I enter a diastolic value of {0}", dia), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 35
+    await testRunner.WhenAsync("I request medication advice", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 36
+    await testRunner.ThenAsync(string.Format("the medication message should be \"{0}\"", expected), ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -228,12 +273,12 @@ namespace BPCalculator.BDDTests.Features
             
             async global::System.Threading.Tasks.Task global::Xunit.IAsyncLifetime.InitializeAsync()
             {
-                await BloodPressureCategoryFeature.FeatureSetupAsync();
+                await BloodPressureEvaluationFeature.FeatureSetupAsync();
             }
             
             async global::System.Threading.Tasks.Task global::Xunit.IAsyncLifetime.DisposeAsync()
             {
-                await BloodPressureCategoryFeature.FeatureTearDownAsync();
+                await BloodPressureEvaluationFeature.FeatureTearDownAsync();
             }
         }
     }

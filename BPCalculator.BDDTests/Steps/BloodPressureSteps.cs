@@ -11,6 +11,7 @@ namespace BPCalculator.BDDTests.Steps
         private BloodPressure _bp;
         private BPCategory _category;
         private Exception _caughtException;
+        private string _medicationMessage;
 
 
         [Given(@"I enter a systolic value of (.*)")]
@@ -49,12 +50,17 @@ namespace BPCalculator.BDDTests.Steps
             }
         }
 
+        [When(@"I request medication advice")]
+        public void WhenIRequestMedicationAdvice()
+        {
+            _medicationMessage = _bp.MedicationMessage;
+        }
+
 
         [Then(@"the result should be ""(.*)""")]
         public void ThenTheResultShouldBe(string expectedCategory)
         {
             Assert.Null(_caughtException);
-
             Assert.Equal(expectedCategory, _category.ToString());
         }
 
@@ -62,6 +68,12 @@ namespace BPCalculator.BDDTests.Steps
         public void ThenAnErrorShouldBeShown()
         {
             Assert.NotNull(_caughtException);
+        }
+
+        [Then(@"the medication message should be ""(.*)""")]
+        public void ThenTheMedicationMessageShouldBe(string expectedMessage)
+        {
+            Assert.Equal(expectedMessage, _medicationMessage);
         }
     }
 }

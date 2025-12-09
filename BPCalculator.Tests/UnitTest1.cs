@@ -26,14 +26,12 @@ namespace BPCalculator.Tests
         }
 
         [Theory]
-        [InlineData(100, 120)]
-        [InlineData(120, 120)]
-        public void Validate_InvalidRelation_Throws(int sys, int dia)
+        [InlineData(100, 100)]
+        [InlineData(80, 90)]
+        public void Validate_SystolicNotGreater_Throws(int sys, int dia)
         {
             var bp = new BloodPressure(sys, dia);
-
-
-            Assert.Throws<ArgumentOutOfRangeException>(() => bp.Validate());
+            Assert.Throws<InvalidOperationException>(() => bp.Validate());
         }
 
         [Theory]
@@ -74,6 +72,50 @@ namespace BPCalculator.Tests
         {
             var bp = new BloodPressure(sys, dia);
             Assert.Equal(BPCategory.Low, bp.Category);
+        }
+
+        [Theory]
+        [InlineData(150, 95, "Consider consulting a doctor about BP medication.")]
+        [InlineData(140, 92, "Consider consulting a doctor about BP medication.")]
+        public void MedicationMessage_High(int sys, int dia, string expected)
+        {
+            var bp = new BloodPressure(sys, dia);
+            Assert.Equal(expected, bp.MedicationMessage);
+        }
+
+        [Theory]
+        [InlineData(130, 70, "Monitor regularly; medication may be needed soon.")]
+        [InlineData(100, 85, "Monitor regularly; medication may be needed soon.")]
+        public void MedicationMessage_PreHigh(int sys, int dia, string expected)
+        {
+            var bp = new BloodPressure(sys, dia);
+            Assert.Equal(expected, bp.MedicationMessage);
+        }
+
+        [Theory]
+        [InlineData(100, 70, "No medication needed.")]
+        [InlineData(95, 65, "No medication needed.")]
+        public void MedicationMessage_Ideal(int sys, int dia, string expected)
+        {
+            var bp = new BloodPressure(sys, dia);
+            Assert.Equal(expected, bp.MedicationMessage);
+        }
+
+        [Theory]
+        [InlineData(80, 55, "Increase fluids or salt if recommended by your doctor.")]
+        [InlineData(75, 50, "Increase fluids or salt if recommended by your doctor.")]
+        public void MedicationMessage_Low(int sys, int dia, string expected)
+        {
+            var bp = new BloodPressure(sys, dia);
+            Assert.Equal(expected, bp.MedicationMessage);
+        }
+
+        [Fact]
+        public void Constructor_SetsValues()
+        {
+            var bp = new BloodPressure(120, 80);
+            Assert.Equal(120, bp.Systolic);
+            Assert.Equal(80, bp.Diastolic);
         }
     }
 }
