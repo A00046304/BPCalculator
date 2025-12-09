@@ -55,46 +55,74 @@ namespace BPCalculator.E2ETests
 
         private string? WaitForCategory()
         {
-            try
+            return _wait.Until(driver =>
             {
-                var element = _wait.Until(d =>
-                    d.FindElement(By.XPath("//p[strong[contains(.,'Category')]]"))
-                );
-                return element.Text;
-            }
-            catch (WebDriverTimeoutException)
-            {
-                return null;
+                try
+                {
+                    var element = _wait.Until(d =>
+                        d.FindElement(By.XPath("//p[strong[contains(.,'Category')]]"))
+                    );
+                    return element.Text;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return null;
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    return null;
+                }
+
             }
         }
 
         private string? WaitForMedication()
         {
-            try
+
+            return _wait.Until(driver =>
             {
-                var element = _wait.Until(d =>
-                    d.FindElement(By.XPath("//p[strong[contains(.,'Medication Advice')]]"))
-                );
-                return element.Text;
-            }
-            catch (WebDriverTimeoutException)
-            {
-                return null;
+
+                try
+                {
+                    var element = _wait.Until(d =>
+                        d.FindElement(By.XPath("//p[strong[contains(.,'Medication Advice')]]"))
+                    );
+                    return element.Text;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return null;
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    return null;
+                }
             }
         }
-
         private string? WaitForErrorMessage()
         {
-            try
+            return _wait.Until(driver =>
             {
-                var element = _wait.Until(d =>
-                    d.FindElement(By.CssSelector("div.alert.alert-danger"))
-                );
-                return element.Text;
-            }
-            catch (WebDriverTimeoutException)
-            {
-                return null;
+
+                try
+                {
+                    var element = _wait.Until(d =>
+                        d.FindElement(By.CssSelector("div.alert.alert-danger"))
+                    );
+                    return element.Text;
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    return null;
+                }
+                catch (NoSuchElementException)
+                {
+                    return null;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return null;
+                }
             }
         }
 
