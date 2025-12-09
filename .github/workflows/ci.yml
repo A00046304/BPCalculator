@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
     - name: Checkout Repository
       uses: actions/checkout@v4
 
@@ -53,7 +52,7 @@ jobs:
           /o:"a00046304" \
           /d:sonar.host.url="https://sonarcloud.io" \
           /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-          /d:sonar.cs.opencover.reportsPaths="coverage/*.opencover.xml" \
+          /d:sonar.cs.opencover.reportsPaths="coverage/*.opencover.xml"
           /d:sonar.exclusions="perf/**/*.js" \
           /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs,**/Pages/*.cs,**/Pages/*.cshtml,perf/**/*.js"
 
@@ -85,17 +84,7 @@ jobs:
         name: coverage-report
         path: coverage/*.opencover.xml
 
-    - name: Publish Web App
-      run: dotnet publish BPCalculator/BPCalculator.csproj -c Release -o ./publish
-
-    - name: Upload build artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-output
-        path: ./publish
-
     - name: SonarCloud - End Analysis
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-
