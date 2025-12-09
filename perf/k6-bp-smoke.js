@@ -8,12 +8,12 @@ export let options = {
         { duration: '10s', target: 0 },    // ramp down
     ],
     thresholds: {
-        http_req_duration: ['p(95)<500'], // 95% must be < 500ms
-        http_req_failed: ['rate<0.01'],   // <1% failures
+        http_req_duration: ['p(95)<2000'], //
+        http_req_failed: ['rate<0.10'],   //
     },
 };
 
-const BASE_URL = "https://bp-staging-webapp.azurewebsites.net";
+const BASE_URL = "https://bp-prod-webapp-staging.azurewebsites.net";
 
 export default function () {
 

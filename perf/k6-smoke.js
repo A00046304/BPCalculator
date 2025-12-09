@@ -6,7 +6,7 @@ export const options = {
     duration: '10s',
 };
 
-const BASE_URL = __ENV.BP_K6_BASEURL || 'http://localhost:53135/';
+const BASE_URL = __ENV.BP_K6_BASEURL || 'https://bp-prod-webapp-staging.azurewebsites.net';
 
 export default function () {
     const res = http.get(BASE_URL);
