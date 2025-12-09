@@ -1,11 +1,9 @@
 name: CD Pipeline
 
 on:
-  # Run CD after CI finishes
-  workflow_run:
-    workflows: ["CI Pipeline"]     
-    types:
-      - completed
+  push:
+    branches: ["master"]
+  workflow_dispatch:
 
 env:
 
@@ -13,29 +11,48 @@ env:
   STAGING_SLOT_URL: "https://bp-prod-webapp-staging.azurewebsites.net"
   PROD_URL: "https://bp-prod-webapp.azurewebsites.net"
 
-  # 1. BUILD — executed once
+# 1. BUILD — executed once
 
 jobs:
-  # 1. DEPLOY TO QA
+  build_app:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Publish Web App
+        run: dotnet publish BPCalculator/BPCalculator.csproj -c Release -o publish
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp
+          path: publish
+
+# 2. DEPLOY TO QA + RUN SELENIUM E2E TESTS
+
   deploy_qa:
     runs-on: ubuntu-latest
-    # Only when CI succeeded AND branch is master
-    if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'master'
+    needs: build_app
     environment: qa
 
     steps:
-      - name: Checkout repo (for tests/scripts only)
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Download artifact from the CI workflow run
-      - name: Download build-output artifact from CI
-        uses: dawidd6/action-download-artifact@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
-          workflow: ci.yml                     
-          run_id: ${{ github.event.workflow_run.id }}
-          name: build-output                   
+          name: webapp
           path: publish
 
       - name: Deploy to QA Web App
@@ -44,18 +61,24 @@ jobs:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_QA }}
           package: publish
 
-      # (Optional) E2E tests
-      # - name: Setup .NET 9
-      #   uses: actions/setup-dotnet@v4
-      #   with:
-      #     dotnet-version: "9.0.x"
-      #
-      # - name: Run Selenium E2E tests (QA)
-      #   env:
-      #     BP_E2E_BASEURL: ${{ env.QA_URL }}
-      #   run: dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj
+      #- name: Setup .NET 9
+        #uses: actions/setup-dotnet@v4
+        #with:
+          #dotnet-version: "9.0.x"
 
-  # 2. DEPLOY TO STAGING SLOT (PRE-PROD) + PERF + SECURITY TESTS
+      #- name: Install Chrome
+        #uses: browser-actions/setup-chrome@v1
+
+      #- name: Install ChromeDriver
+        #uses: nanasess/setup-chromedriver@v2
+
+      #- name: Run Selenium E2E tests (QA)
+        #env:
+          #BP_E2E_BASEURL: ${{ env.QA_URL }}
+        #run: dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj
+
+# 3. DEPLOY TO GREEN SLOT (PRE-PROD) + PERF + SECURITY TESTS
+
   deploy_staging_slot:
     runs-on: ubuntu-latest
     needs: deploy_qa
@@ -65,12 +88,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Download build-output artifact from CI
-        uses: dawidd6/action-download-artifact@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
-          workflow: ci.yml
-          run_id: ${{ github.event.workflow_run.id }}
-          name: build-output
+          name: webapp
           path: publish
 
       - name: Deploy to green slot (pre-prod)
@@ -79,8 +100,8 @@ jobs:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_STAGING }}
           package: publish
 
-      # ------------ K6 PERFORMANCE TESTS --------------------
-      - name: Run k6 smoke test
+      # ------------ K6 PERFORMANCE TEST --------------------
+      - name: Run k6 performance tests
         uses: grafana/k6-action@v0.3.1
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
@@ -108,12 +129,14 @@ jobs:
           target: ${{ env.STAGING_SLOT_URL }}
           cmd_options: "-a"
 
-  # 3. SLOT SWAP (GREEN → PROD) — MANUAL APPROVAL VIA ENVIRONMENT
+
+# 4. SLOT SWAP (GREEN → PROD) — MANUAL APPROVAL REQUIRED
+
   promote_to_prod:
     runs-on: ubuntu-latest
     needs: deploy_staging_slot
     environment:
-      name: production   # 
+      name: production   # 👈 This enables manual approval
     steps:
       - name: Swap GREEN slot into PRODUCTION
         uses: azure/cli@v2
@@ -125,3 +148,4 @@ jobs:
               --slot green \
               --target-slot production \
               --action swap
+
