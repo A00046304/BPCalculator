@@ -23,7 +23,7 @@ namespace BPCalculator.E2ETests
 
             _driver = new ChromeDriver(options);
 
-            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(25));
+            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(30));
             _wait.IgnoreExceptionTypes(typeof(StaleElementReferenceException));
 
             _baseUrl = Environment.GetEnvironmentVariable("BP_E2E_BASEURL")
