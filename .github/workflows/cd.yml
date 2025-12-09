@@ -44,16 +44,22 @@ jobs:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_QA }}
           package: publish
 
-      # (Optional) E2E tests
-      # - name: Setup .NET 9
-      #   uses: actions/setup-dotnet@v4
-      #   with:
-      #     dotnet-version: "9.0.x"
-      #
-      # - name: Run Selenium E2E tests (QA)
-      #   env:
-      #     BP_E2E_BASEURL: ${{ env.QA_URL }}
-      #   run: dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Install ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: Run Selenium E2E tests (QA)
+        env:
+          BP_E2E_BASEURL: ${{ env.QA_URL }}
+        run: dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj
+
 
   # 2. DEPLOY TO STAGING SLOT (PRE-PROD) + PERF + SECURITY TESTS
   deploy_staging_slot:
