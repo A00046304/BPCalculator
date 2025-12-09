@@ -85,6 +85,9 @@ jobs:
     environment: preprod
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
@@ -99,7 +102,7 @@ jobs:
 
       # ------------ K6 PERFORMANCE TEST --------------------
       - name: Run k6 performance tests
-        uses: grafana/k6-action@v0.3
+        uses: grafana/k6-action@v0.3.1
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
         with:
