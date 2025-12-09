@@ -40,7 +40,7 @@ jobs:
 
 
       - name: Deploy to QA Web App
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@b67190b65a84b66805f14e489483a1777a9a40f6
         with:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_QA }}
           package: publish
@@ -51,10 +51,10 @@ jobs:
           dotnet-version: "9.0.x"
 
       - name: Install Chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@6a1baa2da038e7f2ee81dc59e09f4b201c8594d7
 
       - name: Install ChromeDriver
-        uses: nanasess/setup-chromedriver@v2
+        uses: nanasess/setup-chromedriver@b9e5c426a30af2040716a69b58b11bc56181e99f
 
       - name: Run Selenium E2E tests (QA)
         env:
@@ -88,21 +88,21 @@ jobs:
 
       # ------------ K6 PERFORMANCE TESTS --------------------
       - name: Run k6 smoke test
-        uses: grafana/k6-action@v0.3.1
+        uses: grafana/k6-action@f3fdace3ee4634bbcb2c6562e195bdb9fa9a82bc
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
         with:
           filename: perf/k6-bp-smoke.js
 
       - name: Run k6 load test
-        uses: grafana/k6-action@v0.3.1
+        uses: grafana/k6-action@f3fdace3ee4634bbcb2c6562e195bdb9fa9a82bc
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
         with:
           filename: perf/k6-load.js
 
       - name: Run k6 stress test
-        uses: grafana/k6-action@v0.3.1
+        uses: grafana/k6-action@f3fdace3ee4634bbcb2c6562e195bdb9fa9a82bc
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
         with:
@@ -110,7 +110,7 @@ jobs:
 
       # ------------ ZAP SECURITY SCAN ---------------------
       - name: OWASP ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.15.0   # upgrade to latest
+        uses: zaproxy/action-baseline@d78d5b467153a9d8fedc5b9249d0d82a651c01fb   # upgrade to latest
         with:
          token: ${{ secrets.GITHUB_TOKEN }}    # explicit token
          target: ${{ env.STAGING_SLOT_URL }}
@@ -125,7 +125,7 @@ jobs:
       name: production   # 
     steps:
       - name: Swap GREEN slot into PRODUCTION
-        uses: azure/cli@v2
+        uses: azure/cli@0f75b53eecf66e92b3087c54fadccb23195f55b5
         with:
           inlineScript: |
             az webapp deployment slot swap \
