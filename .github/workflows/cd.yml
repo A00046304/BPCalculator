@@ -124,10 +124,12 @@ jobs:
 
       # ------------ ZAP SECURITY SCAN ---------------------
       - name: OWASP ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.10.0
+        uses: zaproxy/action-baseline@v0.15.0   # upgrade to latest
         with:
-          target: ${{ env.STAGING_SLOT_URL }}
-          cmd_options: "-a"
+         token: ${{ secrets.GITHUB_TOKEN }}    # explicit token
+         target: ${{ env.STAGING_SLOT_URL }}
+         cmd_options: "-a"
+         artifact_name: "zap-scan-report"
 
 
 # 4. SLOT SWAP (GREEN → PROD) — MANUAL APPROVAL REQUIRED
