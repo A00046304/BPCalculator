@@ -13,7 +13,7 @@ export let options = {
     },
 };
 
-const BASE_URL = "https://bp-prod-webapp-staging.azurewebsites.net";
+const BASE_URL = __ENV.APP_URL || 'https://bp-prod-webapp-staging.azurewebsites.net';
 
 export default function () {
 
