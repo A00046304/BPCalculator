@@ -1,6 +1,7 @@
 ﻿using System;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Edge;
 using OpenQA.Selenium.Support.UI;
 using Xunit;
 
@@ -14,20 +15,45 @@ namespace BPCalculator.E2ETests
 
         public BloodPressureE2ETests()
         {
-            var options = new ChromeOptions();
-            options.AddArgument("--headless=new");
-            options.AddArgument("--no-sandbox");
-            options.AddArgument("--disable-dev-shm-usage");
-            options.AddArgument("--ignore-certificate-errors");
-            options.AddArgument("--allow-insecure-localhost");
-
-            _driver = new ChromeDriver(options);
+            _driver = CreateWebDriver();
 
             _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(90));
             _wait.IgnoreExceptionTypes(typeof(StaleElementReferenceException));
 
-            _baseUrl = Environment.GetEnvironmentVariable("BP_E2E_BASEURL")
-                       ?? "bp-qa-webapp.azurewebsites.net";
+            var envUrl = Environment.GetEnvironmentVariable("BP_E2E_BASEURL");
+            // Ensure we always have a proper https:// URL
+            _baseUrl = string.IsNullOrWhiteSpace(envUrl)
+                ? "https://bp-qa-webapp.azurewebsites.net"
+                : (envUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                    ? envUrl
+                    : "https://" + envUrl);
+        }
+
+        private static IWebDriver CreateWebDriver()
+        {
+            var browser = (Environment.GetEnvironmentVariable("BROWSER") ?? "chrome")
+                .ToLowerInvariant();
+
+            switch (browser)
+            {
+                case "edge":
+                    var edgeOptions = new EdgeOptions();
+                    edgeOptions.AddArgument("--headless=new");
+                    edgeOptions.AddArgument("--no-sandbox");
+                    edgeOptions.AddArgument("--disable-dev-shm-usage");
+                    edgeOptions.AddArgument("--ignore-certificate-errors");
+                    edgeOptions.AddArgument("--allow-insecure-localhost");
+                    return new EdgeDriver(edgeOptions);
+
+                default: // chrome
+                    var chromeOptions = new ChromeOptions();
+                    chromeOptions.AddArgument("--headless=new");
+                    chromeOptions.AddArgument("--no-sandbox");
+                    chromeOptions.AddArgument("--disable-dev-shm-usage");
+                    chromeOptions.AddArgument("--ignore-certificate-errors");
+                    chromeOptions.AddArgument("--allow-insecure-localhost");
+                    return new ChromeDriver(chromeOptions);
+            }
         }
 
         public void Dispose()
@@ -98,7 +124,6 @@ namespace BPCalculator.E2ETests
             }
         }
 
-
         [Theory]
         [InlineData(150, 95, "High", "Consider consulting a doctor about BP medication.")]
         [InlineData(130, 85, "PreHigh", "Monitor regularly; medication may be needed soon.")]
@@ -123,6 +148,5 @@ namespace BPCalculator.E2ETests
             Assert.Contains(expectedCategoryFragment, category);
             Assert.Contains(expectedMedicationMessage, medication);
         }
-
     }
 }

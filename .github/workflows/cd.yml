@@ -1,11 +1,10 @@
 name: CD Pipeline
 
 on:
-  # Run CD after CI finishes
-  workflow_run:
-    workflows: ["CI Pipeline"]     
-    types:
-      - completed
+  workflow_dispatch:
+  push:
+    branches:
+      - master
 
 env:
 
@@ -56,21 +55,41 @@ jobs:
       - name: Install ChromeDriver
         uses: nanasess/setup-chromedriver@e93e57b843c0c92788f22483f1a31af8ee48db25
 
-      - name: Run Selenium E2E tests (QA)
+
+      - name: Install Edge
+        uses: browser-actions/setup-edge@v1
+
+      - name: Install EdgeDriver
+        uses: browser-actions/setup-edgedriver@v1
+
+      - name: Run Selenium E2E tests (Chrome)
         env:
           BP_E2E_BASEURL: ${{ env.QA_URL }}
+          BROWSER: chrome
         run: |
           mkdir -p TestResults
           dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj \
-            --logger "trx;LogFileName=selenium-e2e.trx" \
+            --logger "trx;LogFileName=selenium-e2e-chrome.trx" \
             --results-directory TestResults
+      
+      - name: Run Selenium E2E tests (edge)
+        env:
+          BP_E2E_BASEURL: ${{ env.QA_URL }}
+          BROWSER: edge
+        run: |
+          mkdir -p TestResults
+          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj \
+            --logger "trx;LogFileName=selenium-e2e-edge.trx" \
+            --results-directory TestResults     
 
       - name: Upload Selenium E2E test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: selenium-e2e-report
-          path: TestResults/selenium-e2e.trx
+          path: |
+            TestResults/selenium-e2e-chrome.trx
+            TestResults/selenium-e2e-edge.trx
 
 
   # 2. DEPLOY TO STAGING SLOT (PRE-PROD) + PERF + SECURITY TESTS
