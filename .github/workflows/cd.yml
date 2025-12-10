@@ -19,7 +19,6 @@ jobs:
   # 1. DEPLOY TO QA
   deploy_qa:
     runs-on: ubuntu-latest
-    environment: cd-approval
     # Only when CI succeeded AND branch is master
     if: |
       github.event.workflow_run.conclusion == 'success' &&
