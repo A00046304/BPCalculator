@@ -61,8 +61,9 @@ jobs:
           BP_E2E_BASEURL: ${{ env.QA_URL }}
         run: |
           mkdir -p TestResults
-          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj -- \
-            --logger "trx;LogFileName=TestResults/selenium-e2e.trx"
+          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj \
+            --logger "trx;LogFileName=selenium-e2e.trx" \
+            --results-directory TestResults
 
       - name: Upload Selenium E2E test report
         if: always()
@@ -103,7 +104,7 @@ jobs:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
         with:
           filename: perf/k6-bp-smoke.js
-          arguments: --summary-export=k6-bp-smoke-summary.json
+          arguments: --summary-export=k6-smoke-summary.json
 
       - name: Run k6 load test
         uses: grafana/k6-action@e4714b734f2b0afaabeb7b4a69142745548ab9ec
@@ -120,7 +121,7 @@ jobs:
         with:
           filename: perf/k6-stress.js
           arguments: --summary-export=k6-stress-summary.json
-     
+
       - name: Upload k6 performance reports
         if: always()
         uses: actions/upload-artifact@v4
