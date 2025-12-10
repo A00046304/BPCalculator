@@ -72,24 +72,6 @@ jobs:
           name: selenium-e2e-report
           path: TestResults/selenium-e2e.trx
 
-      - name: Install ReportGenerator
-        run: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-
-      - name: Generate Selenium HTML report
-        run: |
-          reportgenerator \
-            "-reports:TestResults/selenium-e2e.trx" \
-            "-targetdir:TestResults/SeleniumHtml" \
-            -reporttypes:HtmlInline_AzurePipelines
-
-      - name: Upload Selenium HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: selenium-e2e-html
-          path: TestResults/SeleniumHtml
 
   # 2. DEPLOY TO STAGING SLOT (PRE-PROD) + PERF + SECURITY TESTS
   deploy_staging_slot:
@@ -114,8 +96,6 @@ jobs:
         with:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_STAGING }}
           package: publish
-     
-
 
       # ------------ K6 PERFORMANCE TESTS --------------------
       - name: Prepare k6 output folder
@@ -151,25 +131,6 @@ jobs:
         with:
           name: k6-performance-reports
           path: k6/*.json
- 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Generate k6 HTML reports
-        run: |
-          npm install -g k6-reporter
-          k6-reporter k6/smoke-summary.json > k6-html/smoke-report.html
-          k6-reporter k6/load-summary.json > k6-html/load-report.html
-          k6-reporter k6/stress-summary.json > k6-html/stress-report.html
-
-      - name: Upload k6 HTML performance reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: k6-performance-html
-          path: k6-html/*.html
 
       # ------------ ZAP SECURITY SCAN ---------------------
       - name: OWASP ZAP baseline scan
