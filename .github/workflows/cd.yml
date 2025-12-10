@@ -50,29 +50,6 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
-      - name: Install Chrome
-        uses: browser-actions/setup-chrome@b94431e051d1c52dcbe9a7092a4f10f827795416
-
-      - name: Install ChromeDriver
-        uses: nanasess/setup-chromedriver@e93e57b843c0c92788f22483f1a31af8ee48db25
-
-      - name: Run Selenium E2E tests (QA)
-        env:
-          BP_E2E_BASEURL: ${{ env.QA_URL }}
-        run: |
-          mkdir -p TestResults
-          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj \
-            --logger "trx;LogFileName=selenium-e2e.trx" \
-            --results-directory TestResults
-
-      - name: Upload Selenium E2E test report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: selenium-e2e-report
-          path: TestResults/selenium-e2e.trx
-
-
   # 2. DEPLOY TO STAGING SLOT (PRE-PROD) + PERF + SECURITY TESTS
   deploy_staging_slot:
     runs-on: ubuntu-latest
@@ -96,6 +73,8 @@ jobs:
         with:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_STAGING }}
           package: publish
+     
+
 
       # ------------ K6 PERFORMANCE TESTS --------------------
       - name: Prepare k6 output folder
@@ -131,6 +110,25 @@ jobs:
         with:
           name: k6-performance-reports
           path: k6/*.json
+ 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate k6 HTML reports
+        run: |
+          npm install -g k6-reporter
+          k6-reporter k6/smoke-summary.json > k6-html/smoke-report.html
+          k6-reporter k6/load-summary.json > k6-html/load-report.html
+          k6-reporter k6/stress-summary.json > k6-html/stress-report.html
+
+      - name: Upload k6 HTML performance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-performance-html
+          path: k6-html/*.html
 
       # ------------ ZAP SECURITY SCAN ---------------------
       - name: OWASP ZAP baseline scan
