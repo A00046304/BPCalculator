@@ -98,39 +98,39 @@ jobs:
           package: publish
 
       # ------------ K6 PERFORMANCE TESTS --------------------
+      - name: Prepare k6 output folder
+        run: mkdir -p k6
+
       - name: Run k6 smoke test
         uses: grafana/k6-action@e4714b734f2b0afaabeb7b4a69142745548ab9ec
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
+          K6_SUMMARY_EXPORT: /github/workspace/k6/k6-smoke-summary.json
         with:
           filename: perf/k6-bp-smoke.js
-          arguments: --summary-export=/github/workspace/k6-smoke-summary.json
 
       - name: Run k6 load test
         uses: grafana/k6-action@e4714b734f2b0afaabeb7b4a69142745548ab9ec
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
+          K6_SUMMARY_EXPORT: /github/workspace/k6/k6-load-summary.json
         with:
           filename: perf/k6-load.js
-          arguments: --summary-export=/github/workspace/k6-load-summary.json
 
       - name: Run k6 stress test
         uses: grafana/k6-action@e4714b734f2b0afaabeb7b4a69142745548ab9ec
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
+          K6_SUMMARY_EXPORT: /github/workspace/k6/k6-stress-summary.json
         with:
           filename: perf/k6-stress.js
-          arguments: --summary-export=/github/workspace/k6-stress-summary.json
 
       - name: Upload k6 performance reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: k6-performance-reports
-          path: |
-            k6-smoke-summary.json
-            k6-load-summary.json
-            k6-stress-summary.json
+          path: k6/*.json
 
       # ------------ ZAP SECURITY SCAN ---------------------
       - name: OWASP ZAP baseline scan
