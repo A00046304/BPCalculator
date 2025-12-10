@@ -59,7 +59,7 @@ jobs:
 
 
       - name: Install Edge
-        uses: browser-actions/setup-edge@7f91f5ac3f31ad40c2eb76cc85ee5115e1efc9b8
+        uses: browser-actions/setup-edge@da55a37
 
       - name: Run Selenium E2E tests QA (Chrome)
         env:
