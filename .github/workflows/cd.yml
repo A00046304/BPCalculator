@@ -104,7 +104,7 @@ jobs:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
         with:
           filename: perf/k6-bp-smoke.js
-          arguments: --summary-export=k6-smoke-summary.json
+          arguments: --summary-export=/github/workspace/k6-smoke-summary.json
 
       - name: Run k6 load test
         uses: grafana/k6-action@e4714b734f2b0afaabeb7b4a69142745548ab9ec
@@ -112,7 +112,7 @@ jobs:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
         with:
           filename: perf/k6-load.js
-          arguments: --summary-export=k6-load-summary.json
+          arguments: --summary-export=/github/workspace/k6-load-summary.json
 
       - name: Run k6 stress test
         uses: grafana/k6-action@e4714b734f2b0afaabeb7b4a69142745548ab9ec
@@ -120,7 +120,7 @@ jobs:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
         with:
           filename: perf/k6-stress.js
-          arguments: --summary-export=k6-stress-summary.json
+          arguments: --summary-export=/github/workspace/k6-stress-summary.json
 
       - name: Upload k6 performance reports
         if: always()
