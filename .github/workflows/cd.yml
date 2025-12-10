@@ -72,6 +72,24 @@ jobs:
           name: selenium-e2e-report
           path: TestResults/selenium-e2e.trx
 
+      - name: Install ReportGenerator
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Generate Selenium HTML report
+        run: |
+          reportgenerator \
+            "-reports:TestResults/selenium-e2e.trx" \
+            "-targetdir:TestResults/SeleniumHtml" \
+            -reporttypes:HtmlInline_AzurePipelines
+
+      - name: Upload Selenium HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-e2e-html
+          path: TestResults/SeleniumHtml
 
   # 2. DEPLOY TO STAGING SLOT (PRE-PROD) + PERF + SECURITY TESTS
   deploy_staging_slot:
@@ -97,24 +115,7 @@ jobs:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_STAGING }}
           package: publish
      
-      - name: Install ReportGenerator
-        run: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
-      - name: Generate Selenium HTML report
-        run: |
-          reportgenerator \
-            "-reports:TestResults/selenium-e2e.trx" \
-            "-targetdir:TestResults/SeleniumHtml" \
-            -reporttypes:HtmlInline_AzurePipelines
-
-      - name: Upload Selenium HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: selenium-e2e-html
-          path: TestResults/SeleniumHtml
 
       # ------------ K6 PERFORMANCE TESTS --------------------
       - name: Prepare k6 output folder
