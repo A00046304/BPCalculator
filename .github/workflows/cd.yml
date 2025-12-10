@@ -19,6 +19,7 @@ jobs:
   # 1. DEPLOY TO QA
   deploy_qa:
     runs-on: ubuntu-latest
+    environment: cd-approval
     # Only when CI succeeded AND branch is master
     if: |
       github.event.workflow_run.conclusion == 'success' &&
@@ -33,8 +34,8 @@ jobs:
       - name: Download build-output artifact from CI
         uses: actions/download-artifact@v4
         with:
-         name: build-output                  # artifact name from CI
-         path: publish                       # where to extract it
+         name: build-output                 
+         path: publish                       
          run-id: ${{ github.event.workflow_run.id }}
          github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -50,11 +51,34 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@b94431e051d1c52dcbe9a7092a4f10f827795416
+
+      - name: Install ChromeDriver
+        uses: nanasess/setup-chromedriver@e93e57b843c0c92788f22483f1a31af8ee48db25
+
+      - name: Run Selenium E2E tests (QA)
+        env:
+          BP_E2E_BASEURL: ${{ env.QA_URL }}
+        run: |
+          mkdir -p TestResults
+          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj \
+            --logger "trx;LogFileName=selenium-e2e.trx" \
+            --results-directory TestResults
+
+      - name: Upload Selenium E2E test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-e2e-report
+          path: TestResults/selenium-e2e.trx
+
+
   # 2. DEPLOY TO STAGING SLOT (PRE-PROD) + PERF + SECURITY TESTS
   deploy_staging_slot:
     runs-on: ubuntu-latest
     needs: deploy_qa
-    environment: preprod
+    environment: staging
 
     steps:
       - name: Checkout repo
@@ -63,79 +87,51 @@ jobs:
       - name: Download build-output artifact from CI
         uses: actions/download-artifact@v4
         with:
-         name: build-output                  # artifact name from CI
-         path: publish                       # where to extract it
+         name: build-output                  
+         path: publish                       
          run-id: ${{ github.event.workflow_run.id }}
          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to green slot (pre-prod)
+      - name: Deploy to green slot (staging)
         uses: azure/webapps-deploy@122b7ec46017e53a3f71e3a027d67550a1641f5e
         with:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_STAGING }}
           package: publish
-     
-
 
       # ------------ K6 PERFORMANCE TESTS --------------------
       - name: Prepare k6 output folder
-        run: |
-         mkdir -p k6
-         mkdir -p k6-html
+        run: mkdir -p k6
 
       - name: Run k6 smoke test
         uses: grafana/k6-action@e4714b734f2b0afaabeb7b4a69142745548ab9ec
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
+          K6_SUMMARY_EXPORT: /github/workspace/k6/k6-smoke-summary.json
         with:
           filename: perf/k6-bp-smoke.js
-          arguments: --out json=/github/workspace/k6/smoke.json
 
       - name: Run k6 load test
         uses: grafana/k6-action@e4714b734f2b0afaabeb7b4a69142745548ab9ec
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
+          K6_SUMMARY_EXPORT: /github/workspace/k6/k6-load-summary.json
         with:
           filename: perf/k6-load.js
-          arguments: --out json=/github/workspace/k6/load.json
 
       - name: Run k6 stress test
         uses: grafana/k6-action@e4714b734f2b0afaabeb7b4a69142745548ab9ec
         env:
           APP_URL: ${{ env.STAGING_SLOT_URL }}
+          K6_SUMMARY_EXPORT: /github/workspace/k6/k6-stress-summary.json
         with:
           filename: perf/k6-stress.js
-          arguments: --out json=/github/workspace/k6/stress.json
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Generate k6 HTML reports
-        run: |
-          npm install -g k6-html-reporter
-          k6-html-reporter -i k6/smoke.json -o k6-html/smoke-report.html
-          k6-html-reporter -i k6/load.json -o k6-html/load-report.html
-          k6-html-reporter -i k6/stress.json -o k6-html/stress-report.html
- 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Generate k6 HTML reports
-        run: |
-          npm install -g k6-reporter
-          k6-reporter k6/smoke-summary.json > k6-html/smoke-report.html
-          k6-reporter k6/load-summary.json > k6-html/load-report.html
-          k6-reporter k6/stress-summary.json > k6-html/stress-report.html
-
-      - name: Upload k6 HTML performance reports
+      - name: Upload k6 performance reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: k6-performance-html
-          path: k6-html/*.html
+          name: k6-performance-reports
+          path: k6/*.json
 
       # ------------ ZAP SECURITY SCAN ---------------------
       - name: OWASP ZAP baseline scan
