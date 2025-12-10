@@ -59,11 +59,19 @@ jobs:
 
 
       - name: Install Edge
-        uses: browser-actions/setup-edge@v1
+        uses: browser-actions/setup-edge@c694e0a21cd09f42b01e0c003c7baa251da04b7c
 
-
+      - name: Run Selenium E2E tests QA (Chrome)
+        env:
+          BP_E2E_BASEURL: ${{ env.QA_URL }}
+          BROWSER: chrome
+        run: |
+          mkdir -p TestResults
+          dotnet test BPCalculator.E2ETests/BPCalculator.E2ETests.csproj \
+            --logger "trx;LogFileName=selenium-e2e-chrome.trx" \
+            --results-directory TestResults
       
-      - name: Run Selenium E2E tests (edge)
+      - name: Run Selenium E2E tests QA (edge)
         env:
           BP_E2E_BASEURL: ${{ env.QA_URL }}
           BROWSER: edge
@@ -144,9 +152,9 @@ jobs:
 
       # ------------ ZAP SECURITY SCAN ---------------------
       - name: OWASP ZAP baseline scan
-        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25   # upgrade to latest
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25   
         with:
-         token: ${{ secrets.GITHUB_TOKEN }}    # explicit token
+         token: ${{ secrets.GITHUB_TOKEN }}    
          target: ${{ env.STAGING_SLOT_URL }}
          cmd_options: "-a"
          artifact_name: "zap-scan-report"
