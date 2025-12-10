@@ -150,6 +150,25 @@ jobs:
         with:
           name: k6-performance-reports
           path: k6/*.json
+ 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate k6 HTML reports
+        run: |
+          npm install -g k6-reporter
+          k6-reporter k6/smoke-summary.json > k6-html/smoke-report.html
+          k6-reporter k6/load-summary.json > k6-html/load-report.html
+          k6-reporter k6/stress-summary.json > k6-html/stress-report.html
+
+      - name: Upload k6 HTML performance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-performance-html
+          path: k6-html/*.html
 
       # ------------ ZAP SECURITY SCAN ---------------------
       - name: OWASP ZAP baseline scan
