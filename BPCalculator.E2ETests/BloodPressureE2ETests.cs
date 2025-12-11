@@ -17,11 +17,10 @@ namespace BPCalculator.E2ETests
         {
             _driver = CreateWebDriver();
 
-            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(150));
-            _wait.IgnoreExceptionTypes(typeof(StaleElementReferenceException));
+            // 15s is usually plenty; you had 150 which is overkill
+            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
 
             var envUrl = Environment.GetEnvironmentVariable("BP_E2E_BASEURL");
-            // Ensure we always have a proper https:// URL
             _baseUrl = string.IsNullOrWhiteSpace(envUrl)
                 ? "https://bp-qa-webapp.azurewebsites.net"
                 : (envUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
@@ -79,49 +78,69 @@ namespace BPCalculator.E2ETests
             submit.Click();
         }
 
-        private string? WaitForCategory()
+        private string WaitForCategory()
         {
-            try
+            return _wait.Until(driver =>
             {
-                var element = _wait.Until(d =>
-                    d.FindElement(By.XPath("//p[strong[contains(.,'Category')]]"))
-                );
-                return element.Text;
-            }
-            catch (WebDriverTimeoutException)
-            {
-                return null;
-            }
+                try
+                {
+                    var el = driver.FindElement(By.XPath("//p[strong[contains(.,'Category')]]"));
+                    var text = el.Text?.Trim();
+
+                    // keep waiting if text not ready yet
+                    return string.IsNullOrEmpty(text) ? null : text;
+                }
+                catch (NoSuchElementException)
+                {
+                    return null; // element not there yet
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return null; // DOM changed, retry
+                }
+            })!;
         }
 
-        private string? WaitForMedication()
+        private string WaitForMedication()
         {
-            try
+            return _wait.Until(driver =>
             {
-                var element = _wait.Until(d =>
-                    d.FindElement(By.XPath("//p[strong[contains(.,'Medication Advice')]]"))
-                );
-                return element.Text;
-            }
-            catch (WebDriverTimeoutException)
-            {
-                return null;
-            }
+                try
+                {
+                    var el = driver.FindElement(By.XPath("//p[strong[contains(.,'Medication Advice')]]"));
+                    var text = el.Text?.Trim();
+                    return string.IsNullOrEmpty(text) ? null : text;
+                }
+                catch (NoSuchElementException)
+                {
+                    return null;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return null;
+                }
+            })!;
         }
 
         private string? WaitForErrorMessage()
         {
-            try
+            return _wait.Until(driver =>
             {
-                var element = _wait.Until(d =>
-                    d.FindElement(By.CssSelector("div.alert.alert-danger"))
-                );
-                return element.Text;
-            }
-            catch (WebDriverTimeoutException)
-            {
-                return null;
-            }
+                try
+                {
+                    var el = driver.FindElement(By.CssSelector("div.alert.alert-danger"));
+                    var text = el.Text?.Trim();
+                    return string.IsNullOrEmpty(text) ? null : text;
+                }
+                catch (NoSuchElementException)
+                {
+                    return null; // no error yet
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return null;
+                }
+            });
         }
 
         [Theory]
