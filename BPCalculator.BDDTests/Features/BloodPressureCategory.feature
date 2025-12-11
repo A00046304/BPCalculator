@@ -37,7 +37,7 @@ Scenario Outline: Medication advice is accurate
 
 Examples:
     | sys | dia | expected                                                   |
-    | 150 | 95  | Seek medical advice regarding BP medication.               |
-    | 130 | 70  | Monitor closely, you may require medication soon.          |
+    | 150 | 95  | Consider consulting a doctor about BP medication.          |
+    | 130 | 70  | Monitor regularly, medication may be needed soon.          |
     | 100 | 70  | No medication needed.                                      |
     | 80  | 55  | Increase fluids or salt if recommended by your doctor.     |

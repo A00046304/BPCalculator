@@ -75,8 +75,8 @@ namespace BPCalculator.Tests
         }
 
         [Theory]
-        [InlineData(150, 95, "Seek medical advice regarding BP medication.")]
-        [InlineData(140, 92, "Seek medical advice regarding BP medication.")]
+        [InlineData(150, 95, "Consider consulting a doctor about BP medication.")]
+        [InlineData(140, 92, "Consider consulting a doctor about BP medication.")]
         public void MedicationMessage_High(int sys, int dia, string expected)
         {
             var bp = new BloodPressure(sys, dia);
@@ -84,8 +84,8 @@ namespace BPCalculator.Tests
         }
 
         [Theory]
-        [InlineData(130, 70, "Monitor closely, you may require medication soon.")]
-        [InlineData(100, 85, "Monitor closely, you may require medication soon.")]
+        [InlineData(130, 70, "Monitor regularly, medication may be needed soon.")]
+        [InlineData(100, 85, "Monitor regularly, medication may be needed soon.")]
         public void MedicationMessage_PreHigh(int sys, int dia, string expected)
         {
             var bp = new BloodPressure(sys, dia);
