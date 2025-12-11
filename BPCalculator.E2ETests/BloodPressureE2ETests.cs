@@ -17,7 +17,7 @@ namespace BPCalculator.E2ETests
         {
             _driver = CreateWebDriver();
 
-            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(120));
+            _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(90));
             _wait.IgnoreExceptionTypes(typeof(StaleElementReferenceException));
 
             var envUrl = Environment.GetEnvironmentVariable("BP_E2E_BASEURL");
@@ -126,7 +126,7 @@ namespace BPCalculator.E2ETests
 
         [Theory]
         [InlineData(150, 95, "High", "Consider consulting a doctor about BP medication.")]
-        [InlineData(130, 85, "PreHigh", "Monitor regularly, medication may be needed soon.")]
+        [InlineData(130, 85, "PreHigh", "Monitor regularly; medication may be needed soon.")]
         [InlineData(110, 70, "Ideal", "No medication needed.")]
         [InlineData(80, 55, "Low", "Increase fluids or salt if recommended by your doctor.")]
         public void ValidInputs_Should_Show_Correct_Category_And_Medication(

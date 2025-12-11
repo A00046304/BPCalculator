@@ -84,8 +84,8 @@ namespace BPCalculator.Tests
         }
 
         [Theory]
-        [InlineData(130, 70, "Monitor regularly, medication may be needed soon.")]
-        [InlineData(100, 85, "Monitor regularly, medication may be needed soon.")]
+        [InlineData(130, 70, "Monitor regularly; medication may be needed soon.")]
+        [InlineData(100, 85, "Monitor regularly; medication may be needed soon.")]
         public void MedicationMessage_PreHigh(int sys, int dia, string expected)
         {
             var bp = new BloodPressure(sys, dia);
