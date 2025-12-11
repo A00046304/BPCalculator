@@ -72,6 +72,7 @@ namespace BPCalculator
                     BPCategory.PreHigh => "Monitor closely, you may require medication soon.",
                     BPCategory.Ideal => "No medication needed.",
                     BPCategory.Low => "Increase fluids or salt if recommended by your doctor.",
+                    _ => string.Empty
                 };
             }
         }
