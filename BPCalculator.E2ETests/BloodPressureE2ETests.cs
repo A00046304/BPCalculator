@@ -17,7 +17,7 @@ namespace BPCalculator.E2ETests
         {
             _driver = CreateWebDriver();
 
-            // 15s is usually plenty; you had 150 which is overkill
+            // 15s is enough for the QA app on GitHub runners
             _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
 
             var envUrl = Environment.GetEnvironmentVariable("BP_E2E_BASEURL");
@@ -65,6 +65,7 @@ namespace BPCalculator.E2ETests
         {
             _driver.Navigate().GoToUrl(_baseUrl);
 
+            // Always (re)locate elements on the current DOM
             var sys = _wait.Until(d => d.FindElement(By.Id("BP_Systolic")));
             var dia = _driver.FindElement(By.Id("BP_Diastolic"));
             var submit = _driver.FindElement(By.CssSelector("button[type='submit']"));
@@ -78,6 +79,7 @@ namespace BPCalculator.E2ETests
             submit.Click();
         }
 
+        // Wait for Category paragraph text in a stale-safe way
         private string WaitForCategory()
         {
             return _wait.Until(driver =>
@@ -86,21 +88,20 @@ namespace BPCalculator.E2ETests
                 {
                     var el = driver.FindElement(By.XPath("//p[strong[contains(.,'Category')]]"));
                     var text = el.Text?.Trim();
-
-                    // keep waiting if text not ready yet
                     return string.IsNullOrEmpty(text) ? null : text;
                 }
                 catch (NoSuchElementException)
                 {
-                    return null; // element not there yet
+                    return null; // not there yet
                 }
                 catch (StaleElementReferenceException)
                 {
-                    return null; // DOM changed, retry
+                    return null; // DOM updated, retry
                 }
             })!;
         }
 
+        // Wait for Medication Advice text in a stale-safe way
         private string WaitForMedication()
         {
             return _wait.Until(driver =>
@@ -122,25 +123,25 @@ namespace BPCalculator.E2ETests
             })!;
         }
 
+        // Error message: we *don't* expect it for valid inputs, so just check once
         private string? WaitForErrorMessage()
         {
-            return _wait.Until(driver =>
+            try
             {
-                try
-                {
-                    var el = driver.FindElement(By.CssSelector("div.alert.alert-danger"));
-                    var text = el.Text?.Trim();
-                    return string.IsNullOrEmpty(text) ? null : text;
-                }
-                catch (NoSuchElementException)
-                {
-                    return null; // no error yet
-                }
-                catch (StaleElementReferenceException)
-                {
-                    return null;
-                }
-            });
+                var el = _driver.FindElement(By.CssSelector("div.alert.alert-danger"));
+                var text = el.Text?.Trim();
+                return string.IsNullOrEmpty(text) ? null : text;
+            }
+            catch (NoSuchElementException)
+            {
+                // No error div present -> no error
+                return null;
+            }
+            catch (StaleElementReferenceException)
+            {
+                // Alert disappeared due to re-render -> treat as no error
+                return null;
+            }
         }
 
         [Theory]
@@ -160,6 +161,7 @@ namespace BPCalculator.E2ETests
             var medication = WaitForMedication();
             var error = WaitForErrorMessage();
 
+            // Valid inputs => no validation error
             Assert.Null(error);
             Assert.NotNull(category);
             Assert.NotNull(medication);
