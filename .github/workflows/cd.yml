@@ -115,7 +115,7 @@ jobs:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_STAGING }}
           package: publish
 
-      # ------------ K6 PERFORMANCE TESTS --------------------
+      # K6 PERFORMANCE TESTS
       - name: Prepare k6 output folder
         run: mkdir -p k6
 
@@ -150,7 +150,7 @@ jobs:
           name: k6-performance-reports
           path: k6/*.json
 
-      # ------------ ZAP SECURITY SCAN ---------------------
+      # ZAP SECURITY SCAN
       - name: OWASP ZAP baseline scan
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25   
         with:
