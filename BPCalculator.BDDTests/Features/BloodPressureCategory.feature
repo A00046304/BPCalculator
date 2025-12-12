@@ -36,8 +36,8 @@ Scenario Outline: Medication advice is accurate
     Then the medication message should be "<expected>"
 
 Examples:
-    | sys | dia | expected                                                   |
-    | 150 | 95  | Consider consulting a doctor about BP medication.          |
-    | 130 | 70  | Monitor regularly, medication may be needed soon.          |
-    | 100 | 70  | No medication needed.                                      |
-    | 80  | 55  | Increase fluids or salt if recommended by your doctor.     |
+    | sys | dia | expected                                                                              |
+    | 150 | 95  | Consider discussing blood pressure medication with a healthcare professional.         |
+    | 130 | 70  | Continue regular monitoring, medication may be required soon.                         |
+    | 100 | 70  | No medication needed.                                                                 |
+    | 80  | 55  | Increase fluid or salt intake if advised by your doctor.                              |

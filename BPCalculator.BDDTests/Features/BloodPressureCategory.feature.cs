@@ -225,10 +225,10 @@ this.ScenarioInitialize(scenarioInfo, ruleInfo);
         [global::Xunit.SkippableTheoryAttribute(DisplayName="Medication advice is accurate")]
         [global::Xunit.TraitAttribute("FeatureTitle", "Blood Pressure Evaluation")]
         [global::Xunit.TraitAttribute("Description", "Medication advice is accurate")]
-        [global::Xunit.InlineDataAttribute("150", "95", "Consider consulting a doctor about BP medication.", "10", new string[0])]
-        [global::Xunit.InlineDataAttribute("130", "70", "Monitor regularly; medication may be needed soon.", "11", new string[0])]
+        [global::Xunit.InlineDataAttribute("150", "95", "Consider discussing blood pressure medication with a healthcare professional.", "10", new string[0])]
+        [global::Xunit.InlineDataAttribute("130", "70", "Continue regular monitoring, medication may be required soon.", "11", new string[0])]
         [global::Xunit.InlineDataAttribute("100", "70", "No medication needed.", "12", new string[0])]
-        [global::Xunit.InlineDataAttribute("80", "55", "Increase fluids or salt if recommended by your doctor.", "13", new string[0])]
+        [global::Xunit.InlineDataAttribute("80", "55", "Increase fluid or salt intake if advised by your doctor.", "13", new string[0])]
         public async global::System.Threading.Tasks.Task MedicationAdviceIsAccurate(string sys, string dia, string expected, string @__pickleIndex, string[] exampleTags)
         {
             string[] tagsOfScenario = exampleTags;

@@ -68,10 +68,10 @@ namespace BPCalculator
             {
                 return Category switch
                 {
-                    BPCategory.High => "Consider consulting a doctor about BP medication.",
-                    BPCategory.PreHigh => "Monitor regularly, medication may be needed soon.",
+                    BPCategory.High => "Consider discussing blood pressure medication with a healthcare professional.",
+                    BPCategory.PreHigh => "Continue regular monitoring, medication may be required soon.",
                     BPCategory.Ideal => "No medication needed.",
-                    BPCategory.Low => "Increase fluids or salt if recommended by your doctor.",
+                    BPCategory.Low => "Increase fluid or salt intake if advised by your doctor.",
 
                 };
             }

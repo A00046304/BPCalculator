@@ -17,7 +17,7 @@ namespace BPCalculator.E2ETests
         {
             _driver = CreateWebDriver();
 
-            // 15s is enough for the QA app on GitHub runners
+
             _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
 
             var envUrl = Environment.GetEnvironmentVariable("BP_E2E_BASEURL");
@@ -65,7 +65,7 @@ namespace BPCalculator.E2ETests
         {
             _driver.Navigate().GoToUrl(_baseUrl);
 
-            // Always (re)locate elements on the current DOM
+
             var sys = _wait.Until(d => d.FindElement(By.Id("BP_Systolic")));
             var dia = _driver.FindElement(By.Id("BP_Diastolic"));
             var submit = _driver.FindElement(By.CssSelector("button[type='submit']"));
@@ -79,7 +79,7 @@ namespace BPCalculator.E2ETests
             submit.Click();
         }
 
-        // Wait for Category paragraph text in a stale-safe way
+
         private string WaitForCategory()
         {
             return _wait.Until(driver =>
@@ -101,7 +101,7 @@ namespace BPCalculator.E2ETests
             })!;
         }
 
-        // Wait for Medication Advice text in a stale-safe way
+ 
         private string WaitForMedication()
         {
             return _wait.Until(driver =>
@@ -123,7 +123,7 @@ namespace BPCalculator.E2ETests
             })!;
         }
 
-        // Error message: we *don't* expect it for valid inputs, so just check once
+
         private string? WaitForErrorMessage()
         {
             try
@@ -134,21 +134,21 @@ namespace BPCalculator.E2ETests
             }
             catch (NoSuchElementException)
             {
-                // No error div present -> no error
+
                 return null;
             }
             catch (StaleElementReferenceException)
             {
-                // Alert disappeared due to re-render -> treat as no error
+
                 return null;
             }
         }
 
         [Theory]
-        [InlineData(150, 95, "High", "Consider consulting a doctor about BP medication.")]
-        [InlineData(130, 85, "PreHigh", "Monitor regularly, medication may be needed soon.")]
+        [InlineData(150, 95, "High", "Consider discussing blood pressure medication with a healthcare professional.")]
+        [InlineData(130, 85, "PreHigh", "Continue regular monitoring, medication may be required soon.")]
         [InlineData(110, 70, "Ideal", "No medication needed.")]
-        [InlineData(80, 55, "Low", "Increase fluids or salt if recommended by your doctor.")]
+        [InlineData(80, 55, "Low", "Increase fluid or salt intake if advised by your doctor.")]
         public void ValidInputs_Should_Show_Correct_Category_And_Medication(
             int systolic,
             int diastolic,
@@ -161,7 +161,7 @@ namespace BPCalculator.E2ETests
             var medication = WaitForMedication();
             var error = WaitForErrorMessage();
 
-            // Valid inputs => no validation error
+
             Assert.Null(error);
             Assert.NotNull(category);
             Assert.NotNull(medication);

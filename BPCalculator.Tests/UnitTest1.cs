@@ -75,8 +75,8 @@ namespace BPCalculator.Tests
         }
 
         [Theory]
-        [InlineData(150, 95, "Consider consulting a doctor about BP medication.")]
-        [InlineData(140, 92, "Consider consulting a doctor about BP medication.")]
+        [InlineData(150, 95, "Consider discussing blood pressure medication with a healthcare professional.")]
+        [InlineData(140, 92, "Consider discussing blood pressure medication with a healthcare professional.")]
         public void MedicationMessage_High(int sys, int dia, string expected)
         {
             var bp = new BloodPressure(sys, dia);
@@ -84,8 +84,8 @@ namespace BPCalculator.Tests
         }
 
         [Theory]
-        [InlineData(130, 70, "Monitor regularly, medication may be needed soon.")]
-        [InlineData(100, 85, "Monitor regularly, medication may be needed soon.")]
+        [InlineData(130, 70, "Continue regular monitoring, medication may be required soon.")]
+        [InlineData(100, 85, "Continue regular monitoring, medication may be required soon.")]
         public void MedicationMessage_PreHigh(int sys, int dia, string expected)
         {
             var bp = new BloodPressure(sys, dia);
@@ -102,8 +102,8 @@ namespace BPCalculator.Tests
         }
 
         [Theory]
-        [InlineData(80, 55, "Increase fluids or salt if recommended by your doctor.")]
-        [InlineData(75, 50, "Increase fluids or salt if recommended by your doctor.")]
+        [InlineData(80, 55, "Increase fluid or salt intake if advised by your doctor.")]
+        [InlineData(75, 50, "Increase fluid or salt intake if advised by your doctor.")]
         public void MedicationMessage_Low(int sys, int dia, string expected)
         {
             var bp = new BloodPressure(sys, dia);
